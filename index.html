@@ -6,41 +6,35 @@
     <title>AIPM 个人导航页</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="light-theme">
-    <!-- 母级结构 -->
+<body class="dark-theme">
+    <!-- 背景渐变层 -->
+    <div class="background-gradient"></div>
+    
+    <!-- 主容器 -->
     <div class="container">
-        <!-- 顶部信息区 -->
-        <header class="header">
-            <div class="header-left">
-                <h1 class="main-title">AIPM</h1>
-                <p class="subtitle">AI 产品经理 · 学习 / 求职 / 项目工作台</p>
-            </div>
-            <div class="header-right">
-                <div class="time-display">2026-04-05 · 星期日 · 15:08</div>
-            </div>
+        <!-- 视觉中心 - Hero Area -->
+        <header class="hero-area">
+            <div class="date-display" id="date-display">04月05日 星期日</div>
+            <div class="clock-display" id="clock-display">15:08:30</div>
         </header>
 
-        <!-- 全局搜索区 -->
-        <div class="global-search-section">
-            <div class="search-container">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="global-search" placeholder="搜索：Google / 资料 / 代码 / 笔记……" class="global-search-input">
-            </div>
-            <div class="quick-actions">
-                <button class="quick-action-btn" onclick="openLink('https://google.com')">用 Google 搜索</button>
-                <button class="quick-action-btn" onclick="openLink('https://drive.google.com')">打开云盘</button>
-            </div>
+        <!-- 药丸形搜索框 -->
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="global-search" placeholder="搜索：Google / 资料 / 代码 / 笔记……" class="global-search-input">
         </div>
 
-        <!-- 中间主区域 -->
+        <!-- 中间内容区域 -->
         <main class="main-content">
             <!-- 首页：今日概览 -->
             <section id="home-section" class="content-section active">
-                <h2 class="section-title">今日概览</h2>
-                <p class="overview-text">今日专注：AIPM 面试准备</p>
-                <div class="overview-actions">
-                    <button class="action-btn" onclick="activateTab('learn')">进入学习模式</button>
-                    <button class="action-btn" onclick="activateTab('work')">打开工作台</button>
+                <div class="overview-card">
+                    <h2 class="section-title">今日概览</h2>
+                    <p class="overview-text">今日专注：AIPM 面试准备</p>
+                    <div class="overview-actions">
+                        <button class="action-btn" onclick="activateTab('learn')">进入学习模式</button>
+                        <button class="action-btn" onclick="activateTab('work')">打开工作台</button>
+                    </div>
                 </div>
             </section>
 
@@ -49,31 +43,7 @@
                 <h2 class="section-title">学习 · Learn</h2>
                 <p class="section-subtitle">系统化学习 AI & AIPM 能力</p>
                 <div class="grid-container">
-                    <div class="card" onclick="openLink('https://chat.openai.com')">
-                        <div class="card-icon">🤖</div>
-                        <h3 class="card-title">ChatGPT</h3>
-                        <p class="card-desc">提问、讲解、改写，学习助理</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://waytoagi.com')">
-                        <div class="card-icon">🌐</div>
-                        <h3 class="card-title">WaytoAGI</h3>
-                        <p class="card-desc">AI 资讯与教程</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://notes.google.com')">
-                        <div class="card-icon">📝</div>
-                        <h3 class="card-title">学习笔记</h3>
-                        <p class="card-desc">记录要点与思考</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">📚</div>
-                        <h3 class="card-title">笔记系统</h3>
-                        <p class="card-desc">Notion / Obsidian 等系统化知识库</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">🎥</div>
-                        <h3 class="card-title">视频学习</h3>
-                        <p class="card-desc">B 站 / YouTube AI 频道</p>
-                    </div>
+                    <!-- 学习模式卡片将在JS中动态生成 -->
                 </div>
             </section>
 
@@ -82,26 +52,7 @@
                 <h2 class="section-title">实验 · Lab</h2>
                 <p class="section-subtitle">动手做 Demo，探索 AI 边界</p>
                 <div class="grid-container">
-                    <div class="card" onclick="openLink('https://github.com')">
-                        <div class="card-icon">⚡</div>
-                        <h3 class="card-title">GitHub</h3>
-                        <p class="card-desc">项目代码与开源 Demo</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://waytoagi.com')">
-                        <div class="card-icon">🧪</div>
-                        <h3 class="card-title">AI 工具实验室</h3>
-                        <p class="card-desc">发现并试玩新工具</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">💻</div>
-                        <h3 class="card-title">本地模型面板</h3>
-                        <p class="card-desc">Ollama / 本地 LLM 控制台</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">🔄</div>
-                        <h3 class="card-title">工作流编排</h3>
-                        <p class="card-desc">多 Agent / 自动化流程实验</p>
-                    </div>
+                    <!-- 实验模式卡片将在JS中动态生成 -->
                 </div>
             </section>
 
@@ -110,26 +61,7 @@
                 <h2 class="section-title">写作 · Write</h2>
                 <p class="section-subtitle">输出 PRD、策略、内容与面试回答</p>
                 <div class="grid-container">
-                    <div class="card" onclick="openLink('https://chat.openai.com')">
-                        <div class="card-icon">🤖</div>
-                        <h3 class="card-title">写作助手</h3>
-                        <p class="card-desc">PRD、方案、面试回答润色</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://notes.google.com')">
-                        <div class="card-icon">📝</div>
-                        <h3 class="card-title">草稿区</h3>
-                        <p class="card-desc">记录灵感与草稿</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://drive.google.com')">
-                        <div class="card-icon">🔗</div>
-                        <h3 class="card-title">简历 & 作品集</h3>
-                        <p class="card-desc">简历、案例合集等文件</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">📄</div>
-                        <h3 class="card-title">文档空间</h3>
-                        <p class="card-desc">Notion / 飞书文档等</p>
-                    </div>
+                    <!-- 写作模式卡片将在JS中动态生成 -->
                 </div>
             </section>
 
@@ -138,26 +70,7 @@
                 <h2 class="section-title">洞察 · Insight</h2>
                 <p class="section-subtitle">看行业、看竞品、看趋势</p>
                 <div class="grid-container">
-                    <div class="card" onclick="openLink('https://waytoagi.com')">
-                        <div class="card-icon">👁</div>
-                        <h3 class="card-title">行业动态</h3>
-                        <p class="card-desc">AI 行业新闻与深度文章</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://drive.google.com')">
-                        <div class="card-icon">🔗</div>
-                        <h3 class="card-title">研究资料</h3>
-                        <p class="card-desc">报告、PPT、研究文档</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">📊</div>
-                        <h3 class="card-title">竞品收藏</h3>
-                        <p class="card-desc">常看 AI 产品与网站合集</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">📰</div>
-                        <h3 class="card-title">观点收藏</h3>
-                        <p class="card-desc">高质量文章 / Newsletter 汇总</p>
-                    </div>
+                    <!-- 洞察模式卡片将在JS中动态生成 -->
                 </div>
             </section>
 
@@ -166,68 +79,39 @@
                 <h2 class="section-title">工作台 · Work</h2>
                 <p class="section-subtitle">处理邮件、会议与项目任务</p>
                 <div class="grid-container">
-                    <div class="card" onclick="openLink('https://mail.google.com')">
-                        <div class="card-icon">✉️</div>
-                        <h3 class="card-title">邮件</h3>
-                        <p class="card-desc">与 HR / 同事沟通</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://calendar.google.com')">
-                        <div class="card-icon">📅</div>
-                        <h3 class="card-title">日历</h3>
-                        <p class="card-desc">面试与会议日程</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://github.com')">
-                        <div class="card-icon">⚡</div>
-                        <h3 class="card-title">项目仓库</h3>
-                        <p class="card-desc">项目代码与 Issue</p>
-                    </div>
-                    <div class="card" onclick="openLink('https://chat.openai.com')">
-                        <div class="card-icon">🤖</div>
-                        <h3 class="card-title">工作助理</h3>
-                        <p class="card-desc">写邮件、改文案、写总结</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">📋</div>
-                        <h3 class="card-title">任务管理</h3>
-                        <p class="card-desc">看板 / 待办（Notion 等）</p>
-                    </div>
-                    <div class="card card-placeholder">
-                        <div class="card-icon">🎯</div>
-                        <h3 class="card-title">面试工作台</h3>
-                        <p class="card-desc">面试题库与准备文档</p>
-                    </div>
+                    <!-- 工作台模式卡片将在JS中动态生成 -->
                 </div>
             </section>
         </main>
-
-        <!-- 底部 Tab 导航 -->
-        <nav class="tab-nav">
-            <div class="tab-item active" data-tab="home">
-                <span class="tab-icon">🏠</span>
-                <span class="tab-text">首页</span>
-            </div>
-            <div class="tab-item" data-tab="learn">
-                <span class="tab-icon">📖</span>
-                <span class="tab-text">学习</span>
-            </div>
-            <div class="tab-item" data-tab="lab">
-                <span class="tab-icon">🧪</span>
-                <span class="tab-text">实验</span>
-            </div>
-            <div class="tab-item" data-tab="write">
-                <span class="tab-icon">✏️</span>
-                <span class="tab-text">写作</span>
-            </div>
-            <div class="tab-item" data-tab="insight">
-                <span class="tab-icon">👁</span>
-                <span class="tab-text">洞察</span>
-            </div>
-            <div class="tab-item" data-tab="work">
-                <span class="tab-icon">💼</span>
-                <span class="tab-text">工作台</span>
-            </div>
-        </nav>
     </div>
+
+    <!-- 底部 Dock 导航栏 -->
+    <nav class="dock-nav">
+        <div class="dock-item active" data-tab="home">
+            <span class="dock-icon">🏠</span>
+            <div class="indicator"></div>
+        </div>
+        <div class="dock-item" data-tab="learn">
+            <span class="dock-icon">📖</span>
+            <div class="indicator"></div>
+        </div>
+        <div class="dock-item" data-tab="lab">
+            <span class="dock-icon">🧪</span>
+            <div class="indicator"></div>
+        </div>
+        <div class="dock-item" data-tab="write">
+            <span class="dock-icon">✏️</span>
+            <div class="indicator"></div>
+        </div>
+        <div class="dock-item" data-tab="insight">
+            <span class="dock-icon">👁</span>
+            <div class="indicator"></div>
+        </div>
+        <div class="dock-item" data-tab="work">
+            <span class="dock-icon">💼</span>
+            <div class="indicator"></div>
+        </div>
+    </nav>
 
     <script src="script.js"></script>
 </body>
