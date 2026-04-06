@@ -6,81 +6,93 @@
     <title>AIPM 个人导航页</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-theme">
+<body>
     <!-- 背景渐变层 -->
     <div class="background-gradient"></div>
     
-    <!-- 主容器 -->
+    <!-- 波浪装饰元素 -->
+    <div class="wave-decoration"></div>
+    
+    <!-- 悬浮科技元素 -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
     <div class="container">
-        <!-- 视觉中心 - Hero Area -->
-        <header class="hero-area">
-            <div class="date-display" id="date-display">04月05日 星期日</div>
-            <div class="clock-display" id="clock-display">15:08:30</div>
+        <!-- 顶部信息区 -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="main-title">AIPM</h1>
+                <p class="subtitle">AI 产品经理 · 学习 / 求职 / 项目工作台</p>
+            </div>
+            <div class="header-right">
+                <div class="date-display" id="date-display">04月05日 星期日</div>
+                <div class="time-display" id="time-display">15:08:30</div>
+            </div>
         </header>
 
-        <!-- 药丸形搜索框 -->
-        <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="global-search" placeholder="搜索：Google / 资料 / 代码 / 笔记……" class="global-search-input">
+        <!-- 全局搜索区 -->
+        <div class="search-section">
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="global-search" placeholder="搜索：Google / 资料 / 代码 / 笔记……" class="global-search-input">
+            </div>
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="performGoogleSearch()">Google 搜索</button>
+                <button class="quick-action-btn" onclick="openLink('https://drive.google.com')">云盘链接</button>
+            </div>
         </div>
 
         <!-- 中间内容区域 -->
         <main class="main-content">
-            <!-- 首页：今日概览 -->
+            <!-- 首页内容 -->
             <section id="home-section" class="content-section active">
                 <div class="overview-card">
-                    <h2 class="section-title">今日概览</h2>
-                    <p class="overview-text">今日专注：AIPM 面试准备</p>
+                    <h2 class="section-title">AIPM 导航中心</h2>
+                    <p class="section-subtitle">AI 产品经理的一站式工作台</p>
+                    <p class="overview-text">探索 AI 产品经理的学习、实验、写作、洞察和工作资源</p>
                     <div class="overview-actions">
-                        <button class="action-btn" onclick="activateTab('learn')">进入学习模式</button>
-                        <button class="action-btn" onclick="activateTab('work')">打开工作台</button>
+                        <button class="action-btn" onclick="activateTab('learn')">开始学习</button>
+                        <button class="action-btn" onclick="activateTab('work')">进入工作台</button>
                     </div>
                 </div>
             </section>
 
-            <!-- 学习模式 -->
+            <!-- 学习模块 -->
             <section id="learn-section" class="content-section">
-                <h2 class="section-title">学习 · Learn</h2>
-                <p class="section-subtitle">系统化学习 AI & AIPM 能力</p>
-                <div class="grid-container">
-                    <!-- 学习模式卡片将在JS中动态生成 -->
-                </div>
+                <h2 class="section-title">学习资源</h2>
+                <p class="section-subtitle">掌握 AI 产品经理必备技能</p>
+                <div class="grid-container"></div>
             </section>
 
-            <!-- 实验模式 -->
+            <!-- 实验模块 -->
             <section id="lab-section" class="content-section">
-                <h2 class="section-title">实验 · Lab</h2>
-                <p class="section-subtitle">动手做 Demo，探索 AI 边界</p>
-                <div class="grid-container">
-                    <!-- 实验模式卡片将在JS中动态生成 -->
-                </div>
+                <h2 class="section-title">实验平台</h2>
+                <p class="section-subtitle">探索 AI 模型与应用</p>
+                <div class="grid-container"></div>
             </section>
 
-            <!-- 写作模式 -->
+            <!-- 写作模块 -->
             <section id="write-section" class="content-section">
-                <h2 class="section-title">写作 · Write</h2>
-                <p class="section-subtitle">输出 PRD、策略、内容与面试回答</p>
-                <div class="grid-container">
-                    <!-- 写作模式卡片将在JS中动态生成 -->
-                </div>
+                <h2 class="section-title">写作工具</h2>
+                <p class="section-subtitle">高效记录与文档管理</p>
+                <div class="grid-container"></div>
             </section>
 
-            <!-- 洞察模式 -->
+            <!-- 洞察模块 -->
             <section id="insight-section" class="content-section">
-                <h2 class="section-title">洞察 · Insight</h2>
-                <p class="section-subtitle">看行业、看竞品、看趋势</p>
-                <div class="grid-container">
-                    <!-- 洞察模式卡片将在JS中动态生成 -->
-                </div>
+                <h2 class="section-title">行业洞察</h2>
+                <p class="section-subtitle">把握 AI 产品趋势</p>
+                <div class="grid-container"></div>
             </section>
 
-            <!-- 工作台模式 -->
+            <!-- 工作台模块 -->
             <section id="work-section" class="content-section">
-                <h2 class="section-title">工作台 · Work</h2>
-                <p class="section-subtitle">处理邮件、会议与项目任务</p>
-                <div class="grid-container">
-                    <!-- 工作台模式卡片将在JS中动态生成 -->
-                </div>
+                <h2 class="section-title">工作台</h2>
+                <p class="section-subtitle">高效管理日常工作</p>
+                <div class="grid-container"></div>
             </section>
         </main>
     </div>
@@ -88,27 +100,46 @@
     <!-- 底部 Dock 导航栏 -->
     <nav class="dock-nav">
         <div class="dock-item active" data-tab="home">
-            <span class="dock-icon">🏠</span>
+            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+            </svg>
             <div class="indicator"></div>
         </div>
         <div class="dock-item" data-tab="learn">
-            <span class="dock-icon">📖</span>
+            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+            </svg>
             <div class="indicator"></div>
         </div>
         <div class="dock-item" data-tab="lab">
-            <span class="dock-icon">🧪</span>
+            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
             <div class="indicator"></div>
         </div>
         <div class="dock-item" data-tab="write">
-            <span class="dock-icon">✏️</span>
+            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
             <div class="indicator"></div>
         </div>
         <div class="dock-item" data-tab="insight">
-            <span class="dock-icon">👁</span>
+            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+            </svg>
             <div class="indicator"></div>
         </div>
         <div class="dock-item" data-tab="work">
-            <span class="dock-icon">💼</span>
+            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
             <div class="indicator"></div>
         </div>
     </nav>

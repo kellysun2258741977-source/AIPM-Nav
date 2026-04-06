@@ -1,4 +1,4 @@
-// AIPM 个人导航页 - Apple 极简主义美学
+// AIPM 个人导航页 - Apple 精致设计风格
 
 // 模块化数据结构 - 便于后期维护链接
 const moduleData = {
@@ -155,7 +155,7 @@ function updateDynamicTime() {
   const timeString = `${hours}:${minutes}:${seconds}`;
   
   document.getElementById('date-display').textContent = dateString;
-  document.getElementById('clock-display').textContent = timeString;
+  document.getElementById('time-display').textContent = timeString;
 }
 
 // 设置 Dock 点击事件
