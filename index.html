@@ -1,149 +1,324 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIPM 个人导航页</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kelly's AIPM Nav</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f0ede8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .vg {
+      background: #faf9f7;
+      width: 100%;
+      max-width: 960px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 0.5px solid #e8e5e0;
+      font-family: 'Jost', sans-serif;
+      color: #1a1a1a;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.06);
+    }
+
+    /* ── Header ── */
+    .vg-header {
+      padding: 40px 52px 32px;
+      border-bottom: 1.5px solid #1a1a1a;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+    .vg-eyebrow {
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+    .vg-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 0.95;
+      color: #1a1a1a;
+      font-style: normal;
+    }
+    .vg-right { text-align: right; }
+    .vg-clock {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: #1a1a1a;
+      letter-spacing: 0.02em;
+    }
+    .vg-date {
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-top: 6px;
+    }
+
+    /* ── Search ── */
+    .vg-search-row {
+      padding: 16px 52px;
+      border-bottom: 0.5px solid #e8e5e0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .vg-search-label {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #bbb;
+      white-space: nowrap;
+    }
+    .vg-divider-v { width: 0.5px; height: 14px; background: #ddd; }
+    .vg-search-row input {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Jost', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      letter-spacing: 0.03em;
+      color: #1a1a1a;
+      flex: 1;
+    }
+    .vg-search-row input::placeholder { color: #ccc; }
+
+    /* ── Grid ── */
+    .vg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .vg-card {
+      padding: 28px 32px;
+      border-right: 0.5px solid #e8e5e0;
+      border-bottom: 0.5px solid #e8e5e0;
+      transition: background 0.2s;
+    }
+    .vg-card:nth-child(3n) { border-right: none; }
+    .vg-card:hover { background: #f2f0ec; }
+
+    .vg-card-num {
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: #ccc;
+      margin-bottom: 12px;
+    }
+    .vg-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0 0 4px;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      font-style: normal;
+    }
+    .vg-card-sub {
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin: 0 0 16px;
+    }
+
+    .vg-links { display: flex; flex-direction: column; }
+    .vg-link {
+      font-size: 13px;
+      font-weight: 300;
+      color: #666;
+      padding: 7px 0;
+      border-bottom: 0.5px solid #ece9e4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.15s;
+    }
+    .vg-link:last-child { border-bottom: none; }
+    .vg-link:hover { color: #1a1a1a; }
+    .vg-link-mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    /* ── Footer ── */
+    .vg-footer {
+      padding: 18px 52px;
+      border-top: 1.5px solid #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .vg-footer-l {
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: #aaa;
+    }
+    .vg-footer-r {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .vg-dot { width: 5px; height: 5px; background: #34c759; border-radius: 50%; }
+
+    /* ── Responsive ── */
+    @media (max-width: 680px) {
+      .vg-grid { grid-template-columns: 1fr 1fr; }
+      .vg-card:nth-child(3n) { border-right: 0.5px solid #e8e5e0; }
+      .vg-card:nth-child(2n) { border-right: none; }
+      .vg-title { font-size: 44px; }
+      .vg-header { padding: 28px 24px 24px; }
+      .vg-search-row { padding: 14px 24px; }
+      .vg-footer { padding: 16px 24px; }
+    }
+  </style>
 </head>
 <body>
-    <!-- 背景渐变层 -->
-    <div class="background-gradient"></div>
-    
-    <!-- 波浪装饰元素 -->
-    <div class="wave-decoration"></div>
-    
-    <!-- 悬浮科技元素 -->
-    <div class="floating-elements">
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
+  <div class="vg">
+
+    <div class="vg-header">
+      <div>
+        <div class="vg-eyebrow">AI Product Manager · Kelly</div>
+        <div class="vg-title">AIPM<br>Nav</div>
+      </div>
+      <div class="vg-right">
+        <div class="vg-clock" id="clk">--:--:--</div>
+        <div class="vg-date" id="dt">--</div>
+      </div>
     </div>
 
-    <div class="container">
-        <!-- 顶部信息区 -->
-        <header class="header">
-            <div class="header-left">
-                <h1 class="main-title">AIPM</h1>
-                <p class="subtitle">AI 产品经理 · 学习 / 求职 / 项目工作台</p>
-            </div>
-            <div class="header-right">
-                <div class="date-display" id="date-display">04月05日 星期日</div>
-                <div class="time-display" id="time-display">15:08:30</div>
-            </div>
-        </header>
-
-        <!-- 全局搜索区 -->
-        <div class="search-section">
-            <div class="search-container">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="global-search" placeholder="搜索：Google / 资料 / 代码 / 笔记……" class="global-search-input">
-            </div>
-            <div class="quick-actions">
-                <button class="quick-action-btn" onclick="performGoogleSearch()">Google 搜索</button>
-                <button class="quick-action-btn" onclick="openLink('https://drive.google.com')">云盘链接</button>
-            </div>
-        </div>
-
-        <!-- 中间内容区域 -->
-        <main class="main-content">
-            <!-- 首页内容 -->
-            <section id="home-section" class="content-section active">
-                <div class="overview-card">
-                    <h2 class="section-title">AIPM 导航中心</h2>
-                    <p class="section-subtitle">AI 产品经理的一站式工作台</p>
-                    <p class="overview-text">探索 AI 产品经理的学习、实验、写作、洞察和工作资源</p>
-                    <div class="overview-actions">
-                        <button class="action-btn" onclick="activateTab('learn')">开始学习</button>
-                        <button class="action-btn" onclick="activateTab('work')">进入工作台</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 学习模块 -->
-            <section id="learn-section" class="content-section">
-                <h2 class="section-title">学习资源</h2>
-                <p class="section-subtitle">掌握 AI 产品经理必备技能</p>
-                <div class="grid-container"></div>
-            </section>
-
-            <!-- 实验模块 -->
-            <section id="lab-section" class="content-section">
-                <h2 class="section-title">实验平台</h2>
-                <p class="section-subtitle">探索 AI 模型与应用</p>
-                <div class="grid-container"></div>
-            </section>
-
-            <!-- 写作模块 -->
-            <section id="write-section" class="content-section">
-                <h2 class="section-title">写作工具</h2>
-                <p class="section-subtitle">高效记录与文档管理</p>
-                <div class="grid-container"></div>
-            </section>
-
-            <!-- 洞察模块 -->
-            <section id="insight-section" class="content-section">
-                <h2 class="section-title">行业洞察</h2>
-                <p class="section-subtitle">把握 AI 产品趋势</p>
-                <div class="grid-container"></div>
-            </section>
-
-            <!-- 工作台模块 -->
-            <section id="work-section" class="content-section">
-                <h2 class="section-title">工作台</h2>
-                <p class="section-subtitle">高效管理日常工作</p>
-                <div class="grid-container"></div>
-            </section>
-        </main>
+    <div class="vg-search-row">
+      <span class="vg-search-label">Search</span>
+      <div class="vg-divider-v"></div>
+      <input id="gs" placeholder="搜索工具、资源、文档..." />
     </div>
 
-    <!-- 底部 Dock 导航栏 -->
-    <nav class="dock-nav">
-        <div class="dock-item active" data-tab="home">
-            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9,22 9,12 15,12 15,22"></polyline>
-            </svg>
-            <div class="indicator"></div>
-        </div>
-        <div class="dock-item" data-tab="learn">
-            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-            </svg>
-            <div class="indicator"></div>
-        </div>
-        <div class="dock-item" data-tab="lab">
-            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-            </svg>
-            <div class="indicator"></div>
-        </div>
-        <div class="dock-item" data-tab="write">
-            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-            </svg>
-            <div class="indicator"></div>
-        </div>
-        <div class="dock-item" data-tab="insight">
-            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 16v-4"></path>
-                <path d="M12 8h.01"></path>
-            </svg>
-            <div class="indicator"></div>
-        </div>
-        <div class="dock-item" data-tab="work">
-            <svg class="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-            <div class="indicator"></div>
-        </div>
-    </nav>
+    <div class="vg-grid">
 
-    <script src="script.js"></script>
+      <div class="vg-card">
+        <div class="vg-card-num">01</div>
+        <div class="vg-card-title">学习资源</div>
+        <div class="vg-card-sub">Learning</div>
+        <div class="vg-links">
+          <a class="vg-link" href="https://productschool.com" target="_blank">Product School <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://www.reforge.com" target="_blank">Reforge <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://roadmap.sh/product-manager" target="_blank">PM Roadmap <span class="vg-link-mark">→</span></a>
+        </div>
+      </div>
+
+      <div class="vg-card">
+        <div class="vg-card-num">02</div>
+        <div class="vg-card-title">实验平台</div>
+        <div class="vg-card-sub">Experiment</div>
+        <div class="vg-links">
+          <a class="vg-link" href="https://claude.ai" target="_blank">Claude <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://coze.cn" target="_blank">扣子 Coze <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://n8n.io" target="_blank">n8n 工作流 <span class="vg-link-mark">→</span></a>
+        </div>
+      </div>
+
+      <div class="vg-card">
+        <div class="vg-card-num">03</div>
+        <div class="vg-card-title">写作工具</div>
+        <div class="vg-card-sub">Writing</div>
+        <div class="vg-links">
+          <a class="vg-link" href="https://notion.so" target="_blank">Notion <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://www.feishu.cn" target="_blank">飞书文档 <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://obsidian.md" target="_blank">Obsidian <span class="vg-link-mark">→</span></a>
+        </div>
+      </div>
+
+      <div class="vg-card">
+        <div class="vg-card-num">04</div>
+        <div class="vg-card-title">行业洞察</div>
+        <div class="vg-card-sub">Insights</div>
+        <div class="vg-links">
+          <a class="vg-link" href="https://www.producthunt.com" target="_blank">Product Hunt <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://techcrunch.com/ai" target="_blank">TechCrunch AI <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://www.36kr.com" target="_blank">36氪 <span class="vg-link-mark">→</span></a>
+        </div>
+      </div>
+
+      <div class="vg-card">
+        <div class="vg-card-num">05</div>
+        <div class="vg-card-title">Vibe Coding</div>
+        <div class="vg-card-sub">Build</div>
+        <div class="vg-links">
+          <a class="vg-link" href="https://trae.ai" target="_blank">Trae IDE <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://bolt.new" target="_blank">Bolt.new <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://cursor.sh" target="_blank">Cursor <span class="vg-link-mark">→</span></a>
+        </div>
+      </div>
+
+      <div class="vg-card">
+        <div class="vg-card-num">06</div>
+        <div class="vg-card-title">求职工作台</div>
+        <div class="vg-card-sub">Career</div>
+        <div class="vg-links">
+          <a class="vg-link" href="https://www.linkedin.com" target="_blank">LinkedIn <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://www.zhipin.com" target="_blank">BOSS 直聘 <span class="vg-link-mark">→</span></a>
+          <a class="vg-link" href="https://www.lagou.com" target="_blank">拉勾网 <span class="vg-link-mark">→</span></a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="vg-footer">
+      <span class="vg-footer-l">Kelly · AIPM Nav · 2025</span>
+      <span class="vg-footer-r"><span class="vg-dot"></span>All Systems Running</span>
+    </div>
+
+  </div>
+
+  <script>
+    function tick() {
+      const n = new Date();
+      document.getElementById('clk').textContent = n.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('dt').textContent = n.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
+    }
+    tick();
+    setInterval(tick, 1000);
+
+    document.getElementById('gs').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && this.value.trim()) {
+        window.open('https://www.google.com/search?q=' + encodeURIComponent(this.value), '_blank');
+      }
+    });
+  </script>
 </body>
 </html>
