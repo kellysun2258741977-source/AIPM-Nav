@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRD Agent · 需求/PRD 助手</title>
+  <meta name="description" content="一个可见思考过程的需求/PRD 助手 Agent：从一句粗略想法出发，经澄清、用户故事到完整 PRD 草稿。支持零配置演示与 BYOK 真实大模型驱动。" />
+  <meta name="theme-color" content="#f0ede8" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a1a1a'/%3E%3Ctext x='50' y='70' font-family='Georgia,serif' font-size='50' font-weight='700' fill='%23faf9f7' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="PRD Agent · 需求/PRD 助手" />
+  <meta property="og:description" content="可见思考循环的需求助手 Agent，作品集 Demo。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Jost:wght@200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <!-- ── Header ── -->
+    <header class="hd">
+      <div class="hd-left">
+        <p class="eyebrow">Product Requirements · Agent Demo</p>
+        <h1 class="title">PRD&nbsp;Agent</h1>
+        <p class="subtitle">输入一句粗略的产品想法，看 Agent 走完<strong>澄清 → 用户故事 → PRD</strong>的可见循环。</p>
+      </div>
+      <div class="hd-right">
+        <div class="hd-actions">
+          <span id="modeBadge" class="badge badge-demo" title="当前运行模式">演示模式</span>
+          <button class="icon-btn" id="settingsBtn" title="模型设置（BYOK）" aria-label="模型设置">⚙</button>
+          <button class="icon-btn" id="themeBtn" title="切换白天/黑夜主题" aria-label="切换主题">☾</button>
+        </div>
+        <a class="back-link" href="../index.html">← 返回导航页</a>
+      </div>
+    </header>
+
+    <!-- ── Phase tracker ── -->
+    <nav class="phases" id="phases" aria-label="Agent 流程阶段">
+      <div class="phase" data-phase="1"><span class="phase-no">01</span><span class="phase-name">澄清需求</span></div>
+      <div class="phase-arrow">→</div>
+      <div class="phase" data-phase="2"><span class="phase-no">02</span><span class="phase-name">用户故事</span></div>
+      <div class="phase-arrow">→</div>
+      <div class="phase" data-phase="3"><span class="phase-no">03</span><span class="phase-name">PRD 草稿</span></div>
+    </nav>
+
+    <!-- ── Input ── -->
+    <section class="composer" id="composer">
+      <label class="composer-label" for="ideaInput">你的产品想法</label>
+      <textarea id="ideaInput" class="idea-input" rows="3"
+        placeholder="例如：做一个帮独立开发者管理订阅制收入的工具，能看清每月经常性收入和流失风险……"></textarea>
+      <div class="chips" id="exampleChips" aria-label="示例想法">
+        <button class="chip" type="button">面向考研党的 AI 错题本</button>
+        <button class="chip" type="button">帮宠物主记录健康的小程序</button>
+        <button class="chip" type="button">给小团队用的轻量 OKR 工具</button>
+        <button class="chip" type="button">独立开发者的订阅收入看板</button>
+      </div>
+      <div class="composer-foot">
+        <p class="hint" id="composerHint">演示模式无需 API Key，可直接体验完整 Agent 流程。</p>
+        <button class="run-btn" id="runBtn">运行 Agent ▸</button>
+      </div>
+    </section>
+
+    <!-- ── Agent trace + output ── -->
+    <section class="stage" id="stage" hidden>
+      <div class="stage-head">
+        <h2 class="stage-title">Agent 运行轨迹</h2>
+        <button class="text-btn" id="resetBtn" type="button">重新开始</button>
+      </div>
+      <div class="trace" id="trace" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <!-- ── Settings modal ── -->
+  <div class="modal-mask" id="settingsModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal-head">
+        <h3 id="settingsTitle">模型设置 · BYOK</h3>
+        <button class="icon-btn" id="settingsClose" aria-label="关闭">✕</button>
+      </div>
+      <p class="modal-note">
+        填入你自己的 API Key 即可由<strong>真实大模型</strong>通过 function-calling 驱动。
+        兼容 OpenAI 协议端点（OpenAI / DeepSeek / 本地等）。Key 仅保存在本浏览器
+        <code>localStorage</code>，不会上传到任何服务器。留空则使用零配置<strong>演示模式</strong>。
+      </p>
+
+      <div class="field">
+        <label>预设端点</label>
+        <div class="seg" id="presetSeg">
+          <button type="button" data-preset="demo" class="seg-btn active">演示模式</button>
+          <button type="button" data-preset="openai" class="seg-btn">OpenAI</button>
+          <button type="button" data-preset="deepseek" class="seg-btn">DeepSeek</button>
+          <button type="button" data-preset="custom" class="seg-btn">自定义</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="baseUrl">Base URL</label>
+        <input id="baseUrl" type="text" placeholder="https://api.openai.com/v1" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="apiKey">API Key</label>
+        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="modelName">Model</label>
+        <input id="modelName" type="text" placeholder="gpt-4o-mini" autocomplete="off" />
+      </div>
+
+      <div class="modal-foot">
+        <button class="text-btn" id="clearKeyBtn" type="button">清除并回到演示模式</button>
+        <button class="run-btn" id="saveSettings" type="button">保存设置</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-foot">
+    <span>PRD Agent · 一个 AIPM 作品集 Demo</span>
+    <span class="dot">·</span>
+    <span>思考可见 · 零配置可跑 · BYOK 真实驱动</span>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
