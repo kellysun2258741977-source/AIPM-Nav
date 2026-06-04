@@ -7,6 +7,10 @@
   <meta name="description" content="Kelly 的 AI 产品经理导航页：学习资源、实验平台、写作工具、行业洞察、Vibe Coding 与求职工作台的精选入口。" />
   <meta name="theme-color" content="#f0ede8" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a1a1a'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='52' font-weight='700' fill='%23faf9f7' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="AIPM Nav" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Kelly's AIPM Nav" />
   <meta property="og:description" content="AI 产品经理的个人导航页 · 精选工具与资源入口。" />
@@ -213,6 +217,14 @@
       transition: all 0.15s ease;
     }
     .vg-edit-bar button:hover { color: var(--ink); border-color: var(--ink); }
+    .vg-edit-hint {
+      width: 100%;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      color: var(--muted-2);
+      margin-top: 2px;
+    }
 
     /* ── Grid ── */
     .vg-grid {
@@ -228,6 +240,8 @@
     .vg-card:nth-child(3n) { border-right: none; }
     .vg-card:last-child { border-right: none; }
     .vg-card:hover { background: var(--hover); }
+    .vg-card.dragover { outline: 1.5px dashed var(--ink); outline-offset: -5px; }
+    .vg-card.vg-dragging { opacity: 0.4; }
 
     .vg-card-num {
       font-family: 'Jost', sans-serif;
@@ -256,6 +270,12 @@
       color: var(--muted-3);
       margin: 0 0 16px;
     }
+    /* 编辑模式：分类标题栏 */
+    .vg-cat-titlebar { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 16px; }
+    .vg-cat-titles { flex: 1; min-width: 0; }
+    .vg-cat-titles .vg-card-title { margin-bottom: 2px; }
+    .vg-cat-titles .vg-card-sub { margin-bottom: 0; }
+    .vg-cat-titlebar .vg-mini-btns { margin-top: 3px; }
 
     .vg-links { display: flex; flex-direction: column; }
     .vg-link {
@@ -270,13 +290,28 @@
       text-decoration: none;
       letter-spacing: 0.02em;
       transition: color 0.15s;
+      gap: 8px;
     }
     .vg-link:last-child { border-bottom: none; }
     .vg-link:hover { color: var(--ink); }
+    .vg-link-l { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .vg-link-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .vg-link-mark {
       font-family: 'Playfair Display', serif;
       font-size: 14px;
       color: var(--faint);
+      flex-shrink: 0;
+    }
+
+    /* 站点小图标 / 字母替身 */
+    .vg-fav { position: relative; width: 16px; height: 16px; flex-shrink: 0; display: inline-block; }
+    .vg-fav img { position: absolute; inset: 0; width: 16px; height: 16px; object-fit: contain; border-radius: 3px; }
+    .vg-mono {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-size: 11px; font-weight: 600;
+      color: var(--muted-2); border: 0.5px solid var(--border); border-radius: 3px;
+      background: var(--panel); line-height: 1;
     }
 
     /* ── 编辑模式下的链接行 ── */
@@ -284,7 +319,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
       padding: 7px 0;
       border-bottom: 0.5px solid var(--border-soft);
       font-size: 13px;
@@ -292,21 +327,26 @@
       color: var(--link);
     }
     .vg-link-edit:last-child { border-bottom: none; }
+    .vg-link-edit.dragover { box-shadow: inset 0 2px 0 var(--ink); }
+    .vg-link-edit.vg-dragging { opacity: 0.4; }
     .vg-link-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .vg-mini-btns { display: flex; gap: 8px; flex-shrink: 0; }
+    .vg-mini-btns { display: flex; gap: 6px; flex-shrink: 0; }
     .vg-mini-btn {
       background: none;
       border: 0;
       cursor: pointer;
       color: var(--muted-3);
-      font-size: 13px;
+      font-size: 12px;
       padding: 2px;
       font-family: 'Jost', sans-serif;
       transition: color 0.15s ease;
+      line-height: 1;
     }
     .vg-mini-btn:hover { color: var(--ink); }
+    .vg-drag { cursor: grab; color: var(--faint); font-size: 12px; flex-shrink: 0; user-select: none; }
+    .vg-drag:active { cursor: grabbing; }
 
-    .vg-add-link {
+    .vg-add-link, .vg-add-cat {
       margin-top: 12px;
       width: 100%;
       background: none;
@@ -320,7 +360,8 @@
       border-radius: 6px;
       transition: all 0.15s ease;
     }
-    .vg-add-link:hover { color: var(--ink); border-color: var(--ink); }
+    .vg-add-cat { margin-top: 0; }
+    .vg-add-link:hover, .vg-add-cat:hover { color: var(--ink); border-color: var(--ink); }
 
     /* ── 内联表单 ── */
     .vg-form { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; }
@@ -392,6 +433,10 @@
       .vg-edit-bar { padding: 12px 24px; }
       .vg-footer { padding: 16px 24px; }
     }
+    @media (max-width: 480px) {
+      .vg-grid { grid-template-columns: 1fr; }
+      .vg-card:nth-child(2n) { border-right: none; }
+    }
   </style>
 </head>
 <body>
@@ -399,13 +444,13 @@
 
     <div class="vg-header">
       <div>
-        <div class="vg-eyebrow">AI Product Manager · Kelly</div>
+        <div class="vg-eyebrow" id="eyebrow">AI Product Manager · Kelly</div>
         <div class="vg-title">AIPM<br>Nav</div>
       </div>
       <div class="vg-right">
         <div class="vg-actions">
           <button class="vg-icon-btn" id="themeBtn" title="切换主题" aria-label="切换白天/黑夜主题">☾</button>
-          <button class="vg-icon-btn" id="editBtn" title="编辑链接" aria-label="编辑链接">✎</button>
+          <button class="vg-icon-btn" id="editBtn" title="编辑（增删改 / 拖拽排序）" aria-label="编辑">✎</button>
         </div>
         <div class="vg-clock" id="clk">--:--:--</div>
         <div class="vg-date" id="dt">--</div>
@@ -415,7 +460,7 @@
     <div class="vg-search-row">
       <span class="vg-search-label">Search</span>
       <div class="vg-divider-v"></div>
-      <input id="gs" type="search" aria-label="全局搜索" placeholder="搜索工具、资源、文档..." />
+      <input id="gs" type="search" aria-label="全局搜索（按 / 键聚焦）" placeholder="搜索工具、资源、文档…（按 / 聚焦）" />
       <div class="vg-engines" id="engines">
         <button class="vg-engine" data-engine="baidu">百度</button>
         <button class="vg-engine" data-engine="bing">Bing</button>
@@ -424,10 +469,11 @@
     </div>
 
     <div class="vg-edit-bar" id="editBar" hidden>
-      <button data-act="reset">恢复默认链接</button>
+      <button data-act="reset">恢复默认</button>
       <button data-act="clearclicks">清空点击记录</button>
       <button data-act="export">导出备份</button>
       <button data-act="import">导入备份</button>
+      <div class="vg-edit-hint">提示：拖动 ⠿ 可排序；手机上用 ▲▼ 调整顺序。✎ 改 · ✕ 删。</div>
     </div>
 
     <div class="vg-grid" id="grid"></div>
@@ -500,7 +546,9 @@
     let data = loadData();
     let clicks = store.get(KEYS.clicks, {}) || {};
     let editMode = false;
-    let formState = null; // { cat: 分类下标, link: 链接下标 | null(表示新增) }
+    let formState = null;    // 链接表单 { cat, link:索引|null(新增) }
+    let catFormState = null; // 分类表单 { cat:索引|null(新增) }
+    let drag = null;         // 拖拽中 { type:'link'|'cat', cat, idx }
 
     const $ = id => document.getElementById(id);
 
@@ -514,6 +562,17 @@
       if (!/^https?:\/\//i.test(u) && !/^mailto:/i.test(u)) u = 'https://' + u;
       return u;
     }
+    function swap(arr, i, j) { const t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+    function favHost(url) { try { return new URL(url).hostname; } catch (e) { return ''; } }
+    function favHtml(url, name) {
+      const host = favHost(url);
+      const letter = esc(((name || '#').trim().charAt(0) || '#').toUpperCase());
+      const src = host ? `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(host)}` : '';
+      return '<span class="vg-fav">' +
+        `<span class="vg-mono">${letter}</span>` +
+        (src ? `<img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(src)}" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'">` : '') +
+        '</span>';
+    }
 
     /* ====== 渲染 ====== */
     function frequentLinks() {
@@ -526,6 +585,12 @@
       return all.slice(0, 6);
     }
 
+    function linkAnchor(l) {
+      return `<a class="vg-link" href="${esc(l.url)}" data-url="${esc(l.url)}" target="_blank" rel="noopener noreferrer">` +
+        `<span class="vg-link-l">${favHtml(l.url, l.name)}<span class="vg-link-text">${esc(l.name)}</span></span>` +
+        '<span class="vg-link-mark">&rarr;</span></a>';
+    }
+
     function linkForm(name, url) {
       return '<div class="vg-form">' +
         `<input class="vg-form-name" type="text" placeholder="名称，如 Notion" value="${esc(name)}" />` +
@@ -533,6 +598,16 @@
         '<div class="vg-form-btns">' +
         '<button class="vg-form-save" data-act="save">保存</button>' +
         '<button class="vg-form-cancel" data-act="cancel">取消</button>' +
+        '</div></div>';
+    }
+
+    function catForm(title, sub) {
+      return '<div class="vg-form">' +
+        `<input class="vg-cat-name" type="text" placeholder="分类名，如 学习资源" value="${esc(title)}" />` +
+        `<input class="vg-cat-sub" type="text" placeholder="英文副标题，如 Learning" value="${esc(sub)}" />` +
+        '<div class="vg-form-btns">' +
+        '<button class="vg-form-save" data-act="catsave">保存</button>' +
+        '<button class="vg-form-cancel" data-act="catcancel">取消</button>' +
         '</div></div>';
     }
 
@@ -547,36 +622,54 @@
             '<div class="vg-card-num">★</div>' +
             '<div class="vg-card-title">常用</div>' +
             '<div class="vg-card-sub">Frequent</div>' +
-            '<div class="vg-links">' +
-            freq.map(l => `<a class="vg-link" href="${esc(l.url)}" data-url="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.name)} <span class="vg-link-mark">&rarr;</span></a>`).join('') +
-            '</div></div>';
+            '<div class="vg-links">' + freq.map(linkAnchor).join('') + '</div></div>';
         }
       }
 
       // 分类卡片
       data.forEach((cat, ci) => {
         const num = String(ci + 1).padStart(2, '0');
-        html += '<div class="vg-card">' +
-          `<div class="vg-card-num">${num}</div>` +
-          `<div class="vg-card-title">${esc(cat.title)}</div>` +
-          `<div class="vg-card-sub">${esc(cat.sub)}</div>` +
-          '<div class="vg-links">';
+        html += `<div class="vg-card" data-cat="${ci}">` + `<div class="vg-card-num">${num}</div>`;
 
+        // 标题区：普通 / 编辑 / 重命名表单
+        if (editMode && catFormState && catFormState.cat === ci) {
+          html += catForm(cat.title, cat.sub);
+        } else if (editMode) {
+          html += '<div class="vg-cat-titlebar">' +
+            `<span class="vg-drag vg-cat-drag" draggable="true" data-cat="${ci}" title="拖动排序分类">&#10303;</span>` +
+            '<div class="vg-cat-titles">' +
+            `<div class="vg-card-title">${esc(cat.title)}</div>` +
+            `<div class="vg-card-sub">${esc(cat.sub || '')}</div>` +
+            '</div>' +
+            '<span class="vg-mini-btns">' +
+            `<button class="vg-mini-btn" data-act="catup" data-cat="${ci}" title="上移">&#9650;</button>` +
+            `<button class="vg-mini-btn" data-act="catdown" data-cat="${ci}" title="下移">&#9660;</button>` +
+            `<button class="vg-mini-btn" data-act="catedit" data-cat="${ci}" title="重命名">&#9998;</button>` +
+            `<button class="vg-mini-btn" data-act="catdel" data-cat="${ci}" title="删除分类">&times;</button>` +
+            '</span></div>';
+        } else {
+          html += `<div class="vg-card-title">${esc(cat.title)}</div>` +
+            `<div class="vg-card-sub">${esc(cat.sub || '')}</div>`;
+        }
+
+        html += '<div class="vg-links">';
         cat.links.forEach((l, li) => {
           if (editMode && formState && formState.cat === ci && formState.link === li) {
             html += linkForm(l.name, l.url);
           } else if (editMode) {
-            html += '<div class="vg-link-edit">' +
+            html += `<div class="vg-link-edit" draggable="true" data-cat="${ci}" data-idx="${li}">` +
+              '<span class="vg-drag" title="拖动排序">&#10303;</span>' +
               `<span class="vg-link-name">${esc(l.name)}</span>` +
               '<span class="vg-mini-btns">' +
+              `<button class="vg-mini-btn" data-act="up" data-cat="${ci}" data-link="${li}" title="上移">&#9650;</button>` +
+              `<button class="vg-mini-btn" data-act="down" data-cat="${ci}" data-link="${li}" title="下移">&#9660;</button>` +
               `<button class="vg-mini-btn" data-act="edit" data-cat="${ci}" data-link="${li}" title="修改">&#9998;</button>` +
               `<button class="vg-mini-btn" data-act="del" data-cat="${ci}" data-link="${li}" title="删除">&times;</button>` +
               '</span></div>';
           } else {
-            html += `<a class="vg-link" href="${esc(l.url)}" data-url="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.name)} <span class="vg-link-mark">&rarr;</span></a>`;
+            html += linkAnchor(l);
           }
         });
-
         html += '</div>'; // .vg-links
 
         if (editMode) {
@@ -590,13 +683,20 @@
         html += '</div>'; // .vg-card
       });
 
+      // 添加分类卡片（编辑模式）
+      if (editMode) {
+        if (catFormState && catFormState.cat === null) {
+          html += '<div class="vg-card"><div class="vg-card-num">＋</div>' + catForm('', '') + '</div>';
+        } else {
+          html += '<div class="vg-card"><div class="vg-card-num">＋</div><button class="vg-add-cat" data-act="addcat">+ 添加分类</button></div>';
+        }
+      }
+
       $('grid').innerHTML = html;
     }
 
-    function focusForm() {
-      const el = document.querySelector('.vg-form .vg-form-name');
-      if (el) el.focus();
-    }
+    function focusForm() { const el = document.querySelector('.vg-form .vg-form-name'); if (el) el.focus(); }
+    function focusCatForm() { const el = document.querySelector('.vg-form .vg-cat-name'); if (el) el.focus(); }
 
     function saveForm(btn) {
       const form = btn.closest('.vg-form');
@@ -606,40 +706,126 @@
       const { cat, link } = formState;
       if (link === null) data[cat].links.push({ name, url });
       else data[cat].links[link] = { name, url };
-      saveData();
-      formState = null;
-      render();
+      saveData(); formState = null; render();
     }
 
-    /* ====== 网格交互（事件委托） ====== */
+    function saveCatForm(btn) {
+      const form = btn.closest('.vg-form');
+      const title = form.querySelector('.vg-cat-name').value.trim();
+      const sub = form.querySelector('.vg-cat-sub').value.trim();
+      if (!title) { alert('请填写分类名'); return; }
+      const i = catFormState.cat;
+      if (i === null) data.push({ title, sub, links: [] });
+      else { data[i].title = title; data[i].sub = sub; }
+      saveData(); catFormState = null; render();
+    }
+
+    function moveLink(srcCat, srcIdx, dstCat, dstIdx) {
+      const item = data[srcCat].links[srcIdx];
+      if (!item) return;
+      data[srcCat].links.splice(srcIdx, 1);
+      let di = dstIdx;
+      if (srcCat === dstCat && srcIdx < dstIdx) di--;
+      data[dstCat].links.splice(di, 0, item);
+      saveData();
+    }
+    function moveCategoryTo(from, to) {
+      if (from === to) return;
+      const item = data[from];
+      data.splice(from, 1);
+      let t = to; if (from < to) t--;
+      data.splice(t, 0, item);
+      saveData();
+    }
+
+    /* ====== 网格点击（事件委托） ====== */
     $('grid').addEventListener('click', function (e) {
       const a = e.target.closest('a.vg-link');
       if (a && !editMode) {
         const url = a.dataset.url;
         if (url) { clicks[url] = (clicks[url] || 0) + 1; store.set(KEYS.clicks, clicks); setTimeout(render, 0); }
-        return; // 不拦截，照常在新标签页打开
+        return; // 照常在新标签页打开
       }
       const btn = e.target.closest('button');
       if (!btn) return;
       const act = btn.dataset.act;
-      if (act === 'add') { formState = { cat: +btn.dataset.cat, link: null }; render(); focusForm(); }
-      else if (act === 'edit') { formState = { cat: +btn.dataset.cat, link: +btn.dataset.link }; render(); focusForm(); }
-      else if (act === 'del') { data[+btn.dataset.cat].links.splice(+btn.dataset.link, 1); saveData(); render(); }
-      else if (act === 'cancel') { formState = null; render(); }
-      else if (act === 'save') { saveForm(btn); }
+      const ci = btn.dataset.cat !== undefined ? +btn.dataset.cat : null;
+      const li = btn.dataset.link !== undefined ? +btn.dataset.link : null;
+      switch (act) {
+        case 'add': formState = { cat: ci, link: null }; catFormState = null; render(); focusForm(); break;
+        case 'edit': formState = { cat: ci, link: li }; catFormState = null; render(); focusForm(); break;
+        case 'del': data[ci].links.splice(li, 1); saveData(); render(); break;
+        case 'up': if (li > 0) { swap(data[ci].links, li, li - 1); saveData(); render(); } break;
+        case 'down': if (li < data[ci].links.length - 1) { swap(data[ci].links, li, li + 1); saveData(); render(); } break;
+        case 'save': saveForm(btn); break;
+        case 'cancel': formState = null; render(); break;
+        case 'catedit': catFormState = { cat: ci }; formState = null; render(); focusCatForm(); break;
+        case 'catdel': if (confirm('确定删除「' + data[ci].title + '」整个分类及其下所有链接吗？')) { data.splice(ci, 1); saveData(); render(); } break;
+        case 'catup': if (ci > 0) { swap(data, ci, ci - 1); saveData(); render(); } break;
+        case 'catdown': if (ci < data.length - 1) { swap(data, ci, ci + 1); saveData(); render(); } break;
+        case 'addcat': catFormState = { cat: null }; formState = null; render(); focusCatForm(); break;
+        case 'catsave': saveCatForm(btn); break;
+        case 'catcancel': catFormState = null; render(); break;
+      }
     });
 
+    /* 表单回车保存 / Esc 取消 */
     $('grid').addEventListener('keydown', function (e) {
       const form = e.target.closest && e.target.closest('.vg-form');
       if (!form) return;
-      if (e.key === 'Enter') { e.preventDefault(); saveForm(form.querySelector('.vg-form-save')); }
-      else if (e.key === 'Escape') { formState = null; render(); }
+      if (e.key === 'Enter') { e.preventDefault(); const b = form.querySelector('.vg-form-save'); if (b) b.click(); }
+      else if (e.key === 'Escape') { formState = null; catFormState = null; render(); }
+    });
+
+    /* ====== 拖拽排序（事件委托） ====== */
+    function clearDragover() { document.querySelectorAll('.dragover').forEach(x => x.classList.remove('dragover')); }
+    const grid = $('grid');
+    grid.addEventListener('dragstart', function (e) {
+      const h = e.target.closest('.vg-cat-drag');
+      const row = e.target.closest('.vg-link-edit');
+      if (h) { drag = { type: 'cat', cat: +h.dataset.cat }; const card = h.closest('.vg-card'); if (card) card.classList.add('vg-dragging'); }
+      else if (row) { drag = { type: 'link', cat: +row.dataset.cat, idx: +row.dataset.idx }; row.classList.add('vg-dragging'); }
+      else { return; }
+      if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', 'aipm'); } catch (_) {} }
+    });
+    grid.addEventListener('dragover', function (e) {
+      if (!drag) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      clearDragover();
+      if (drag.type === 'link') {
+        const row = e.target.closest('.vg-link-edit');
+        const card = e.target.closest('.vg-card[data-cat]');
+        if (row) row.classList.add('dragover');
+        else if (card) card.classList.add('dragover');
+      } else {
+        const card = e.target.closest('.vg-card[data-cat]');
+        if (card) card.classList.add('dragover');
+      }
+    });
+    grid.addEventListener('drop', function (e) {
+      if (!drag) return;
+      e.preventDefault();
+      if (drag.type === 'link') {
+        const row = e.target.closest('.vg-link-edit');
+        const card = e.target.closest('.vg-card[data-cat]');
+        if (row) { moveLink(drag.cat, drag.idx, +row.dataset.cat, +row.dataset.idx); }
+        else if (card) { const dc = +card.dataset.cat; moveLink(drag.cat, drag.idx, dc, data[dc].links.length); }
+      } else {
+        const card = e.target.closest('.vg-card[data-cat]');
+        if (card) moveCategoryTo(drag.cat, +card.dataset.cat);
+      }
+      drag = null; clearDragover(); render();
+    });
+    grid.addEventListener('dragend', function () {
+      drag = null; clearDragover();
+      document.querySelectorAll('.vg-dragging').forEach(x => x.classList.remove('vg-dragging'));
     });
 
     /* ====== 编辑模式开关 ====== */
     $('editBtn').addEventListener('click', function () {
       editMode = !editMode;
-      formState = null;
+      formState = null; catFormState = null;
       this.classList.toggle('active', editMode);
       $('editBar').hidden = !editMode;
       render();
@@ -652,17 +838,14 @@
       const act = btn.dataset.act;
       if (act === 'reset') {
         if (confirm('确定恢复成默认链接吗？你自己添加和修改的链接会被清除。')) {
-          store.del(KEYS.links); data = loadData(); formState = null; render();
+          store.del(KEYS.links); data = loadData(); formState = null; catFormState = null; render();
         }
       } else if (act === 'clearclicks') {
         if (confirm('确定清空点击记录吗？“常用”里的内容会被清除。')) {
           clicks = {}; store.del(KEYS.clicks); render();
         }
-      } else if (act === 'export') {
-        exportBackup();
-      } else if (act === 'import') {
-        importBackup();
-      }
+      } else if (act === 'export') { exportBackup(); }
+      else if (act === 'import') { importBackup(); }
     });
 
     function exportBackup() {
@@ -678,7 +861,6 @@
       } catch (e) {}
       alert('备份已下载，同时复制到了剪贴板。换电脑/浏览器时，用“导入备份”粘贴回来即可。');
     }
-
     function importBackup() {
       const text = prompt('把之前导出的备份内容整段粘贴到这里：');
       if (!text) return;
@@ -686,7 +868,7 @@
         const obj = JSON.parse(text);
         if (Array.isArray(obj.links) && obj.links.length) { data = obj.links; saveData(); }
         if (obj.clicks && typeof obj.clicks === 'object') { clicks = obj.clicks; store.set(KEYS.clicks, clicks); }
-        formState = null; render();
+        formState = null; catFormState = null; render();
         alert('导入成功！');
       } catch (e) { alert('导入失败：内容格式不正确，请确认粘贴的是完整的备份。'); }
     }
@@ -722,23 +904,38 @@
     $('engines').addEventListener('click', function (e) {
       const b = e.target.closest('.vg-engine');
       if (!b) return;
-      engine = b.dataset.engine;
-      store.set(KEYS.engine, engine);
-      markEngine();
+      engine = b.dataset.engine; store.set(KEYS.engine, engine); markEngine();
     });
     markEngine();
 
     $('gs').addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && this.value.trim()) {
         window.open(ENGINES[engine].url + encodeURIComponent(this.value.trim()), '_blank');
-      }
+      } else if (e.key === 'Escape') { this.blur(); }
     });
 
-    /* ====== 时钟 & 年份 ====== */
+    /* ====== 键盘快捷键： / 聚焦搜索 ====== */
+    document.addEventListener('keydown', function (e) {
+      const t = (e.target.tagName || '').toLowerCase();
+      const typing = t === 'input' || t === 'textarea' || e.target.isContentEditable;
+      if (e.key === '/' && !typing) { e.preventDefault(); $('gs').focus(); }
+    });
+
+    /* ====== 时钟 · 日期 · 问候 · 年份 ====== */
+    function greeting() {
+      const h = new Date().getHours();
+      if (h < 5) return '夜深了';
+      if (h < 11) return '早上好';
+      if (h < 13) return '中午好';
+      if (h < 18) return '下午好';
+      if (h < 23) return '晚上好';
+      return '夜深了';
+    }
     function tick() {
       const n = new Date();
       $('clk').textContent = n.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       $('dt').textContent = n.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
+      $('eyebrow').textContent = greeting() + '，Kelly · AI Product Manager';
     }
     tick();
     setInterval(tick, 1000);
@@ -746,6 +943,13 @@
 
     /* ====== 首次渲染 ====== */
     render();
+
+    /* ====== PWA：注册 Service Worker（仅在 http/https 下） ====== */
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
   </script>
 </body>
 </html>
