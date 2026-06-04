@@ -227,6 +227,38 @@
     }
 
     /* ── Grid ── */
+    .vg-feature {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 52px;
+      border-bottom: 0.5px solid var(--border);
+      text-decoration: none;
+      color: var(--ink);
+      background: linear-gradient(90deg, var(--hover), transparent 70%);
+      transition: background 0.25s ease, border-color 0.35s ease;
+    }
+    .vg-feature:hover { background: var(--hover); }
+    .vg-feature-l { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .vg-feature-tag {
+      font-family: 'Jost', sans-serif; font-size: 9.5px; font-weight: 400;
+      letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted-1);
+    }
+    .vg-feature-title {
+      font-family: 'Playfair Display', serif; font-size: 21px; font-weight: 600;
+      letter-spacing: -0.01em; line-height: 1.15;
+    }
+    .vg-feature-sub {
+      font-family: 'Jost', sans-serif; font-size: 12.5px; font-weight: 300;
+      color: var(--link); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .vg-feature-go {
+      flex-shrink: 0; font-family: 'Jost', sans-serif; font-size: 13px;
+      border: 0.5px solid var(--ink); border-radius: 999px; padding: 8px 18px;
+      color: var(--ink); white-space: nowrap; transition: background 0.2s, color 0.2s;
+    }
+    .vg-feature:hover .vg-feature-go { background: var(--ink); color: var(--panel); }
     .vg-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -432,6 +464,7 @@
       .vg-header { padding: 28px 24px 24px; }
       .vg-search-row { padding: 14px 24px; }
       .vg-search-row input { font-size: 15px; }
+      .vg-feature { padding: 16px 24px; }
       .vg-edit-bar { padding: 12px 24px; }
       .vg-footer { padding: 16px 24px; }
       /* 移动端正文放大、点击区加大，提升可读性 */
@@ -476,6 +509,15 @@
         <button class="vg-engine" data-engine="google">Google</button>
       </div>
     </div>
+
+    <a class="vg-feature" href="prd-agent/index.html">
+      <span class="vg-feature-l">
+        <span class="vg-feature-tag">作品集 · Featured Agent</span>
+        <span class="vg-feature-title">PRD Agent · 需求/PRD 助手</span>
+        <span class="vg-feature-sub">输入一句想法，看 Agent 走完 澄清 → 用户故事 → PRD 的可见循环</span>
+      </span>
+      <span class="vg-feature-go">打开 ▸</span>
+    </a>
 
     <div class="vg-edit-bar" id="editBar" hidden>
       <button data-act="reset">恢复默认</button>
