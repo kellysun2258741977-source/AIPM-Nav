@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Demo · Kelly's AIPM Nav</title>
+  <meta name="description" content="一个可视化的 ReAct Agent 演示：思考 → 调用工具 → 观察 → 回答。零配置即可运行，也支持接入真实大模型。" />
+  <meta name="theme-color" content="#f0ede8" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a1a1a'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='52' font-weight='700' fill='%23faf9f7' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── 主题色变量（白天） ── */
+    :root {
+      --bg: #f0ede8;
+      --panel: #faf9f7;
+      --ink: #1a1a1a;
+      --border: #e8e5e0;
+      --border-soft: #ece9e4;
+      --muted-1: #999;
+      --muted-2: #aaa;
+      --muted-3: #bbb;
+      --faint: #ccc;
+      --link: #666;
+      --hover: #f2f0ec;
+      --divider: #ddd;
+      --shadow: rgba(0,0,0,0.06);
+      --think: #8a7f6b;
+      --action: #5b6e8c;
+      --observe: #6b8a7f;
+      --answer: #1a1a1a;
+    }
+    /* ── 主题色变量（黑夜） ── */
+    :root[data-theme="dark"] {
+      --bg: #131210;
+      --panel: #1c1b17;
+      --ink: #ede9e2;
+      --border: #2e2c27;
+      --border-soft: #272420;
+      --muted-1: #8f8a82;
+      --muted-2: #7d786f;
+      --muted-3: #8a857c;
+      --faint: #5a564f;
+      --link: #b3aea4;
+      --hover: #24221e;
+      --divider: #3a3731;
+      --shadow: rgba(0,0,0,0.45);
+      --think: #c4b596;
+      --action: #9db0d0;
+      --observe: #9dc0b3;
+      --answer: #ede9e2;
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+      transition: background-color 0.35s ease;
+    }
+
+    .vg {
+      background: var(--panel);
+      width: 100%;
+      max-width: 880px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 0.5px solid var(--border);
+      font-family: 'Jost', sans-serif;
+      color: var(--ink);
+      box-shadow: 0 4px 40px var(--shadow);
+      transition: background-color 0.35s ease, border-color 0.35s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .vg-header {
+      padding: 36px 44px 28px;
+      border-bottom: 1.5px solid var(--ink);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      transition: border-color 0.35s ease;
+    }
+    .vg-eyebrow {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted-1);
+      margin-bottom: 10px;
+    }
+    .vg-eyebrow a { color: inherit; text-decoration: none; border-bottom: 0.5px solid var(--faint); padding-bottom: 1px; }
+    .vg-eyebrow a:hover { color: var(--ink); }
+    .vg-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 0.95;
+      color: var(--ink);
+    }
+    .vg-right { text-align: right; }
+    .vg-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .vg-icon-btn {
+      background: none;
+      border: 0.5px solid var(--border);
+      color: var(--muted-1);
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Jost', sans-serif;
+      transition: all 0.2s ease;
+    }
+    .vg-icon-btn:hover { color: var(--ink); border-color: var(--ink); }
+    .vg-icon-btn.active { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+
+    /* ── 模式条 ── */
+    .vg-mode {
+      padding: 14px 44px;
+      border-bottom: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .vg-mode-label {
+      font-size: 10px; font-weight: 300; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted-3); white-space: nowrap;
+    }
+    .vg-seg { display: flex; gap: 2px; }
+    .vg-seg button {
+      background: none; border: 0; cursor: pointer;
+      font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 300;
+      letter-spacing: 0.08em; color: var(--faint);
+      padding: 5px 10px; border-radius: 6px; transition: color 0.15s ease;
+    }
+    .vg-seg button:hover { color: var(--muted-1); }
+    .vg-seg button.active { color: var(--ink); font-weight: 500; background: var(--hover); }
+    .vg-mode-spacer { flex: 1; }
+    .vg-settings-btn {
+      background: none; border: 0.5px solid var(--border); color: var(--link);
+      cursor: pointer; font-family: 'Jost', sans-serif; font-size: 11px;
+      letter-spacing: 0.05em; padding: 5px 11px; border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .vg-settings-btn:hover { color: var(--ink); border-color: var(--ink); }
+
+    /* ── 设置面板 ── */
+    .vg-config {
+      padding: 18px 44px; border-bottom: 0.5px solid var(--border);
+      background: var(--hover); display: grid; gap: 10px;
+      grid-template-columns: 1fr 1fr;
+    }
+    .vg-config[hidden] { display: none; }
+    .vg-config .full { grid-column: 1 / -1; }
+    .vg-config label {
+      display: block; font-size: 10px; font-weight: 300; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted-2); margin-bottom: 5px;
+    }
+    .vg-config input, .vg-config select {
+      width: 100%; background: var(--panel); border: 0.5px solid var(--border);
+      border-radius: 7px; padding: 8px 10px; font-family: 'Jost', sans-serif;
+      font-size: 12px; color: var(--ink); outline: none;
+    }
+    .vg-config input:focus, .vg-config select:focus { border-color: var(--ink); }
+    .vg-config .hint { font-size: 11px; color: var(--muted-2); line-height: 1.5; }
+    .vg-config .hint code { font-family: ui-monospace, monospace; font-size: 10px; background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+
+    /* ── 对话/轨迹区 ── */
+    .vg-trace {
+      padding: 24px 44px;
+      min-height: 280px;
+      max-height: 56vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .vg-empty {
+      text-align: center; color: var(--muted-2); padding: 40px 0;
+    }
+    .vg-empty .vg-empty-mark {
+      font-family: 'Playfair Display', serif; font-size: 40px; color: var(--faint);
+      margin-bottom: 12px;
+    }
+    .vg-empty p { font-size: 13px; font-weight: 300; line-height: 1.7; }
+
+    .vg-msg-user {
+      align-self: flex-end; max-width: 80%;
+      background: var(--ink); color: var(--panel);
+      padding: 11px 16px; border-radius: 14px 14px 4px 14px;
+      font-size: 13px; font-weight: 300; line-height: 1.5; letter-spacing: 0.02em;
+      white-space: pre-wrap; word-break: break-word;
+    }
+
+    .vg-step {
+      border-left: 1.5px solid var(--border);
+      padding: 2px 0 2px 16px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .vg-step-tag {
+      font-size: 10px; font-weight: 500; letter-spacing: 0.18em;
+      text-transform: uppercase; margin-bottom: 5px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .vg-step-body {
+      font-size: 13px; font-weight: 300; line-height: 1.6; letter-spacing: 0.02em;
+      color: var(--link); white-space: pre-wrap; word-break: break-word;
+    }
+    .vg-step.think  { border-color: var(--think);  }
+    .vg-step.think  .vg-step-tag { color: var(--think); }
+    .vg-step.action { border-color: var(--action); }
+    .vg-step.action .vg-step-tag { color: var(--action); }
+    .vg-step.observe{ border-color: var(--observe);}
+    .vg-step.observe .vg-step-tag { color: var(--observe); }
+    .vg-step.answer { border-color: var(--answer); }
+    .vg-step.answer .vg-step-tag { color: var(--answer); }
+    .vg-step.answer .vg-step-body { color: var(--ink); font-weight: 400; }
+    .vg-step.error  { border-color: #c0392b; }
+    .vg-step.error  .vg-step-tag { color: #c0392b; }
+
+    .vg-tool-call {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 12px; background: var(--bg); border: 0.5px solid var(--border);
+      border-radius: 7px; padding: 8px 11px; color: var(--link);
+      margin-top: 2px; word-break: break-all;
+    }
+    .vg-tool-call b { color: var(--action); font-weight: 600; }
+
+    .vg-cursor { display: inline-block; width: 7px; height: 14px; background: var(--muted-1); animation: blink 1s steps(2) infinite; vertical-align: middle; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── 输入区 ── */
+    .vg-input-row {
+      padding: 16px 44px;
+      border-top: 1.5px solid var(--ink);
+      display: flex; gap: 12px; align-items: flex-end;
+      transition: border-color 0.35s ease;
+    }
+    .vg-input-row textarea {
+      flex: 1; resize: none; background: none; border: none; outline: none;
+      font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 300;
+      letter-spacing: 0.02em; color: var(--ink); line-height: 1.5;
+      max-height: 120px; min-height: 22px;
+    }
+    .vg-input-row textarea::placeholder { color: var(--faint); }
+    .vg-send {
+      background: var(--ink); color: var(--panel); border: none;
+      width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+      font-size: 16px; flex-shrink: 0; transition: opacity 0.2s ease;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .vg-send:hover { opacity: 0.82; }
+    .vg-send:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ── 示例 chips ── */
+    .vg-chips {
+      padding: 0 44px 16px; display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .vg-chip {
+      background: none; border: 0.5px solid var(--border); color: var(--link);
+      cursor: pointer; font-family: 'Jost', sans-serif; font-size: 11px;
+      font-weight: 300; letter-spacing: 0.03em; padding: 6px 12px;
+      border-radius: 20px; transition: all 0.15s ease;
+    }
+    .vg-chip:hover { color: var(--ink); border-color: var(--ink); }
+
+    /* ── Footer ── */
+    .vg-footer {
+      padding: 16px 44px; border-top: 0.5px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .vg-footer-l { font-size: 11px; font-weight: 300; letter-spacing: 0.1em; color: var(--muted-2); }
+    .vg-footer-r {
+      font-size: 10px; font-weight: 300; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted-2); display: flex; align-items: center; gap: 6px;
+    }
+    .vg-dot { width: 5px; height: 5px; background: #34c759; border-radius: 50%; }
+
+    @media (max-width: 640px) {
+      .vg-header { padding: 26px 22px 22px; }
+      .vg-title { font-size: 38px; }
+      .vg-mode, .vg-config, .vg-trace, .vg-input-row, .vg-footer { padding-left: 22px; padding-right: 22px; }
+      .vg-chips { padding-left: 22px; padding-right: 22px; }
+      .vg-config { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="vg">
+
+    <div class="vg-header">
+      <div>
+        <div class="vg-eyebrow"><a href="./index.html">← AIPM Nav</a> · Mini Agent</div>
+        <div class="vg-title">Agent<br>Playground</div>
+      </div>
+      <div class="vg-right">
+        <div class="vg-actions">
+          <button class="vg-icon-btn" id="themeBtn" title="切换主题" aria-label="切换白天/黑夜主题">☾</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vg-mode">
+      <span class="vg-mode-label">Brain</span>
+      <div class="vg-seg" id="modeSeg">
+        <button data-mode="demo" class="active">演示模式 · 无需 Key</button>
+        <button data-mode="llm">真实大模型 · BYOK</button>
+      </div>
+      <div class="vg-mode-spacer"></div>
+      <button class="vg-settings-btn" id="settingsBtn">⚙ 设置</button>
+    </div>
+
+    <div class="vg-config" id="config" hidden>
+      <div>
+        <label>API Base URL（OpenAI 兼容）</label>
+        <input id="cfgBase" type="text" placeholder="https://api.openai.com/v1" />
+      </div>
+      <div>
+        <label>模型名</label>
+        <input id="cfgModel" type="text" placeholder="gpt-4o-mini / deepseek-chat ..." />
+      </div>
+      <div class="full">
+        <label>API Key（仅存在你本机浏览器，不上传任何服务器）</label>
+        <input id="cfgKey" type="password" placeholder="sk-..." />
+      </div>
+      <div class="full hint">
+        切到「真实大模型」即可由 LLM 驱动 function-calling。兼容 OpenAI、DeepSeek（<code>https://api.deepseek.com/v1</code>）、Moonshot、智谱等 OpenAI 协议端点。
+        Key 通过 <code>localStorage</code> 仅保存在本地；浏览器直连第三方 API 可能遇到 CORS 限制，演示模式则完全离线可用。
+      </div>
+    </div>
+
+    <div class="vg-trace" id="trace">
+      <div class="vg-empty" id="empty">
+        <div class="vg-empty-mark">✦</div>
+        <p>给它一个任务，看 Agent 如何<b>思考 → 调用工具 → 观察 → 回答</b>。<br>下面有几个示例可以直接点。</p>
+      </div>
+    </div>
+
+    <div class="vg-chips" id="chips"></div>
+
+    <div class="vg-input-row">
+      <textarea id="input" rows="1" placeholder="例如：帮我把「上线一个用户反馈收集功能」拆成可执行步骤" aria-label="任务输入"></textarea>
+      <button class="vg-send" id="send" title="发送" aria-label="发送">↑</button>
+    </div>
+
+    <div class="vg-footer">
+      <span class="vg-footer-l">Kelly · ReAct Agent Demo</span>
+      <span class="vg-footer-r"><span class="vg-dot"></span><span id="statusText">Demo Mode</span></span>
+    </div>
+
+  </div>
+
+  <script>
+  /* =========================================================================
+     Mini ReAct Agent
+     -------------------------------------------------------------------------
+     核心思想（面试可讲）：Agent ≠ 单轮聊天。它在一个循环里反复地
+       1) Thought  思考下一步做什么
+       2) Action   调用某个工具（tool / function）
+       3) Observation 读取工具返回的结果
+     直到拿到足够信息后给出 Final Answer。
+     本页提供两种「大脑」：
+       · demo —— 纯前端确定性规则路由，零依赖、零 Key，离线即可演示循环；
+       · llm  —— 接 OpenAI 兼容接口，由大模型做规划与 function-calling。
+     两种模式共用同一套「工具箱」，体现「工具与决策解耦」的工程设计。
+     ========================================================================= */
+
+  const $ = id => document.getElementById(id);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  /* ----------------------------- 工具箱 ----------------------------------- */
+  /* 每个工具 = 名称 + 描述 + 参数 schema + 纯函数实现。
+     LLM 模式下 schema 会转成 OpenAI tools 定义；Demo 模式下由规则路由调用。 */
+  const TOOLS = {
+    calculator: {
+      desc: '计算一个数学表达式，支持 + - * / ( ) 和 % 百分号。用于留存率、转化率、增长等数值计算。',
+      params: { expression: { type: 'string', description: '如 "1200*0.85" 或 "(320-280)/280*100"' } },
+      run({ expression }) {
+        const expr = String(expression || '').replace(/%/g, '/100').replace(/[^0-9+\-*/().\s]/g, '');
+        if (!expr.trim()) return { error: '表达式为空' };
+        try {
+          // 仅允许数字与运算符，已过滤，可安全求值
+          const val = Function('"use strict";return (' + expr + ')')();
+          if (typeof val !== 'number' || !isFinite(val)) return { error: '无法计算' };
+          return { expression: expr, result: Math.round(val * 1e6) / 1e6 };
+        } catch (e) { return { error: '表达式不合法' }; }
+      }
+    },
+    datetime: {
+      desc: '获取当前的日期、时间和星期。',
+      params: {},
+      run() {
+        const n = new Date();
+        return {
+          date: n.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
+          time: n.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+          weekday: n.toLocaleDateString('zh-CN', { weekday: 'long' })
+        };
+      }
+    },
+    text_stats: {
+      desc: '统计一段文本的字数、句子数与预计阅读时长。适合 PM 检查 PRD / 文案长度。',
+      params: { text: { type: 'string', description: '要统计的文本' } },
+      run({ text }) {
+        const t = String(text || '');
+        const chars = t.replace(/\s/g, '').length;
+        const sentences = (t.match(/[。！？.!?]+/g) || []).length || (t.trim() ? 1 : 0);
+        return { chars, sentences, readMinutes: Math.max(1, Math.round(chars / 300)) };
+      }
+    },
+    task_breakdown: {
+      desc: '把一个产品目标拆解成结构化、可执行的步骤清单（探索→设计→开发→验证→上线）。',
+      params: { goal: { type: 'string', description: '要拆解的目标，如「上线用户反馈收集功能」' } },
+      run({ goal }) {
+        const g = String(goal || '该目标').trim();
+        return { goal: g, steps: [
+          `1. 需求澄清：明确「${g}」要解决谁的什么问题、成功指标是什么`,
+          `2. 方案设计：梳理用户流程，产出原型与关键交互`,
+          `3. 拆分排期：切成可交付的小迭代，标注依赖与风险`,
+          `4. 开发联调：与研发对齐技术方案，分阶段实现`,
+          `5. 验证灰度：小流量验证核心指标，收集真实反馈`,
+          `6. 全量上线：复盘指标，沉淀文档与下一步迭代`
+        ]};
+      }
+    },
+    rice_score: {
+      desc: '用 RICE 模型（Reach 触达、Impact 影响、Confidence 信心、Effort 投入）给一个需求打优先级分。分数 = Reach×Impact×Confidence/Effort。',
+      params: {
+        reach: { type: 'number', description: '每周期触达用户数，如 2000' },
+        impact: { type: 'number', description: '影响程度 0.25/0.5/1/2/3' },
+        confidence: { type: 'number', description: '信心 0~1，如 0.8' },
+        effort: { type: 'number', description: '投入人月，如 2' }
+      },
+      run({ reach, impact, confidence, effort }) {
+        reach = +reach; impact = +impact; confidence = +confidence; effort = +effort;
+        if (!effort || effort <= 0) return { error: 'effort（投入）需大于 0' };
+        const score = (reach * impact * confidence) / effort;
+        let tier = score >= 1000 ? '高优先级 🔥' : score >= 200 ? '中优先级' : '低优先级';
+        return { reach, impact, confidence, effort, score: Math.round(score * 100) / 100, tier };
+      }
+    }
+  };
+
+  /* --------------------------- 轨迹渲染 ----------------------------------- */
+  const traceEl = $('trace');
+  function clearEmpty() { const e = $('empty'); if (e) e.remove(); }
+  function scrollDown() { traceEl.scrollTop = traceEl.scrollHeight; }
+
+  function addUser(text) {
+    clearEmpty();
+    const d = document.createElement('div');
+    d.className = 'vg-msg-user';
+    d.textContent = text;
+    traceEl.appendChild(d); scrollDown();
+  }
+
+  const TAGS = {
+    think:   { cls: 'think',   icon: '💭', label: 'Thought · 思考' },
+    action:  { cls: 'action',  icon: '🔧', label: 'Action · 调用工具' },
+    observe: { cls: 'observe', icon: '👁', label: 'Observation · 观察' },
+    answer:  { cls: 'answer',  icon: '✅', label: 'Answer · 回答' },
+    error:   { cls: 'error',   icon: '⚠', label: 'Error · 出错' }
+  };
+  function addStep(kind, html, isHtml) {
+    clearEmpty();
+    const t = TAGS[kind];
+    const step = document.createElement('div');
+    step.className = 'vg-step ' + t.cls;
+    const body = document.createElement('div');
+    body.className = 'vg-step-body';
+    if (isHtml) body.innerHTML = html; else body.textContent = html;
+    step.innerHTML = `<div class="vg-step-tag">${t.icon} ${t.label}</div>`;
+    step.appendChild(body);
+    traceEl.appendChild(step); scrollDown();
+    return body;
+  }
+  // 逐字打字机效果（仅用于思考/回答，营造 agent 推理的「过程感」）
+  async function typeInto(el, text, speed) {
+    el.textContent = '';
+    const cur = document.createElement('span'); cur.className = 'vg-cursor';
+    el.appendChild(cur);
+    for (let i = 0; i < text.length; i++) {
+      cur.insertAdjacentText('beforebegin', text[i]);
+      if (i % 2 === 0) { scrollDown(); await sleep(speed || 14); }
+    }
+    cur.remove(); scrollDown();
+  }
+  function fmtToolCall(name, args) {
+    const a = Object.keys(args || {}).length ? JSON.stringify(args) : '{}';
+    return `<div class="vg-tool-call"><b>${name}</b>(${esc(a)})</div>`;
+  }
+  function esc(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+  /* =========================== Demo 大脑（规则路由） ======================= */
+  /* 不依赖任何模型：根据输入意图选择工具、生成思考文本，真实跑通 ReAct 循环。 */
+  function planDemo(query) {
+    const q = query.toLowerCase();
+    const plans = [];
+
+    const math = query.match(/[-+]?[\d.]+\s*[-+*/%][\s\S]*[\d.]/);
+    if (/留存|转化|增长|百分|计算|算一下|多少|=|％|%/.test(query) && math) {
+      plans.push({ tool: 'calculator', args: { expression: math[0] },
+        think: '这里涉及具体的数值计算，我应该用计算器工具，而不是自己心算，避免出错。' });
+    } else if (math && /[\d][-+*/][\d]/.test(query.replace(/\s/g, ''))) {
+      plans.push({ tool: 'calculator', args: { expression: math[0] },
+        think: '识别到一个数学表达式，调用计算器求值。' });
+    }
+
+    if (/几点|时间|日期|今天|星期|现在/.test(query)) {
+      plans.push({ tool: 'datetime', args: {},
+        think: '用户在问当前时间/日期，调用时间工具获取实时信息。' });
+    }
+
+    if (/字数|多少字|统计|阅读时长|多长/.test(query)) {
+      const m = query.match(/[「"“]([\s\S]+?)[」"”]/);
+      plans.push({ tool: 'text_stats', args: { text: m ? m[1] : query },
+        think: '需要统计文本长度，调用文本统计工具。' });
+    }
+
+    if (/rice|优先级|打分|排序|该不该做|值不值/.test(q) || /reach|impact/.test(q)) {
+      const nums = (query.match(/[\d.]+/g) || []).map(Number);
+      if (nums.length >= 4) {
+        plans.push({ tool: 'rice_score', args: { reach: nums[0], impact: nums[1], confidence: nums[2], effort: nums[3] },
+          think: '用户想评估需求优先级，且给了四个数值，套用 RICE 模型打分。' });
+      } else {
+        plans.push({ tool: 'rice_score', args: { reach: 2000, impact: 2, confidence: 0.8, effort: 2 },
+          think: '用户想做优先级评估但没给全参数，我先用一组示例值演示 RICE 计算，并在回答里说明每个参数含义。' });
+      }
+    }
+
+    if (/拆解|拆成|步骤|计划|怎么做|如何推进|落地|方案|怎么上线/.test(query)) {
+      const m = query.match(/[「"“]([\s\S]+?)[」"”]/);
+      const goal = m ? m[1] : query.replace(/帮我|请|把|拆解|拆成.*?步骤|一下|怎么做|计划/g, '').trim() || query;
+      plans.push({ tool: 'task_breakdown', args: { goal },
+        think: '这是一个偏开放的目标，最有价值的是把它拆成结构化、可执行的步骤，调用任务拆解工具。' });
+    }
+
+    return plans;
+  }
+
+  function demoFinalAnswer(query, results) {
+    if (!results.length) {
+      return '我没能匹配到合适的工具来处理这个请求。试试这些方向：\n• 数值计算（如「(320-280)/280 等于多少」）\n• 任务拆解（如「把『做一个打卡功能』拆成步骤」）\n• RICE 优先级（给出 reach / impact / confidence / effort 四个数）\n• 文本字数统计 / 当前时间\n\n（这是离线演示大脑；切到「真实大模型」可处理任意开放问题。）';
+    }
+    const parts = [];
+    for (const r of results) {
+      const o = r.output;
+      if (r.tool === 'calculator' && o.result !== undefined) parts.push(`计算结果：${o.expression} = ${o.result}`);
+      else if (r.tool === 'datetime') parts.push(`现在是 ${o.date} ${o.weekday} ${o.time}`);
+      else if (r.tool === 'text_stats') parts.push(`这段文本约 ${o.chars} 字、${o.sentences} 句，预计阅读 ${o.readMinutes} 分钟`);
+      else if (r.tool === 'rice_score' && o.score !== undefined) parts.push(`RICE 得分 = ${o.reach}×${o.impact}×${o.confidence}/${o.effort} ≈ ${o.score}，判定为「${o.tier}」`);
+      else if (r.tool === 'task_breakdown') parts.push(`「${o.goal}」可以这样推进：\n${o.steps.join('\n')}`);
+      else if (o.error) parts.push(`（工具返回提示：${o.error}）`);
+    }
+    return parts.join('\n\n');
+  }
+
+  async function runDemo(query) {
+    const plans = planDemo(query);
+    const results = [];
+    if (!plans.length) {
+      const tEl = addStep('think', '');
+      await typeInto(tEl, '我先判断这个请求需要哪个工具……似乎没有现成工具能直接处理，我应该如实说明能力边界，而不是编造答案。');
+    }
+    for (const p of plans) {
+      const tEl = addStep('think', '');
+      await typeInto(tEl, p.think);
+      await sleep(120);
+      addStep('action', fmtToolCall(p.tool, p.args), true);
+      await sleep(260); // 模拟工具执行耗时
+      const output = TOOLS[p.tool].run(p.args);
+      addStep('observe', JSON.stringify(output, null, 2));
+      results.push({ tool: p.tool, output });
+      await sleep(120);
+    }
+    const aEl = addStep('answer', '');
+    await typeInto(aEl, demoFinalAnswer(query, results), 10);
+  }
+
+  /* =========================== LLM 大脑（真实模型） ======================= */
+  function toolsForLLM() {
+    return Object.entries(TOOLS).map(([name, t]) => {
+      const props = {}; const required = [];
+      for (const [k, v] of Object.entries(t.params)) { props[k] = { type: v.type, description: v.description }; required.push(k); }
+      return { type: 'function', function: { name, description: t.desc, parameters: { type: 'object', properties: props, required } } };
+    });
+  }
+
+  async function runLLM(query) {
+    const base = (cfg.base || '').replace(/\/$/, '');
+    if (!base || !cfg.key || !cfg.model) {
+      addStep('error', '请先点右上角「⚙ 设置」填写 API Base URL、模型名和 Key（或切回演示模式）。');
+      return;
+    }
+    const messages = [
+      { role: 'system', content: '你是一个高效的产品助理 Agent。优先调用提供的工具来获取事实/做计算/做拆解，不要凭空编造数字。拿到工具结果后用简洁中文给出最终答复。' },
+      { role: 'user', content: query }
+    ];
+    const tools = toolsForLLM();
+    const MAX_TURNS = 6;
+
+    for (let turn = 0; turn < MAX_TURNS; turn++) {
+      let data;
+      try {
+        const resp = await fetch(base + '/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
+          body: JSON.stringify({ model: cfg.model, messages, tools, tool_choice: 'auto', temperature: 0.3 })
+        });
+        if (!resp.ok) { addStep('error', `接口返回 ${resp.status}：${(await resp.text()).slice(0, 300)}`); return; }
+        data = await resp.json();
+      } catch (e) {
+        addStep('error', '请求失败（常见原因是浏览器直连的 CORS 限制或网络问题）：' + e.message + '\n可改用演示模式，或换一个允许浏览器跨域的接口。');
+        return;
+      }
+
+      const msg = data.choices && data.choices[0] && data.choices[0].message;
+      if (!msg) { addStep('error', '接口返回格式异常。'); return; }
+      messages.push(msg);
+
+      const calls = msg.tool_calls || [];
+      if (calls.length) {
+        if (msg.content) { const tEl = addStep('think', ''); await typeInto(tEl, msg.content); }
+        for (const c of calls) {
+          let args = {};
+          try { args = JSON.parse(c.function.arguments || '{}'); } catch (e) {}
+          addStep('action', fmtToolCall(c.function.name, args), true);
+          const tool = TOOLS[c.function.name];
+          const output = tool ? tool.run(args) : { error: '未知工具' };
+          addStep('observe', JSON.stringify(output, null, 2));
+          messages.push({ role: 'tool', tool_call_id: c.id, content: JSON.stringify(output) });
+        }
+        continue; // 带着工具结果再问一轮
+      }
+
+      // 没有再调工具 → 最终回答
+      const aEl = addStep('answer', '');
+      await typeInto(aEl, msg.content || '(模型没有返回内容)', 10);
+      return;
+    }
+    addStep('error', `已达到最大循环轮数（${MAX_TURNS}），为防止无限循环而停止。`);
+  }
+
+  /* ------------------------------ 主流程 ---------------------------------- */
+  let busy = false;
+  async function submit(text) {
+    text = (text || $('input').value).trim();
+    if (!text || busy) return;
+    busy = true; $('send').disabled = true; $('input').value = ''; autoGrow();
+    addUser(text);
+    try {
+      if (mode === 'llm') await runLLM(text);
+      else await runDemo(text);
+    } catch (e) {
+      addStep('error', '执行出错：' + e.message);
+    } finally {
+      busy = false; $('send').disabled = false; $('input').focus();
+    }
+  }
+
+  /* ------------------------------ 配置/状态 -------------------------------- */
+  const CFG_KEY = 'aipm.agent.cfg';
+  let cfg = (() => { try { return JSON.parse(localStorage.getItem(CFG_KEY)) || {}; } catch (e) { return {}; } })();
+  let mode = 'demo';
+
+  function saveCfg() {
+    cfg.base = $('cfgBase').value.trim();
+    cfg.model = $('cfgModel').value.trim();
+    cfg.key = $('cfgKey').value.trim();
+    try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch (e) {}
+  }
+  $('cfgBase').value = cfg.base || '';
+  $('cfgModel').value = cfg.model || '';
+  $('cfgKey').value = cfg.key || '';
+  ['cfgBase', 'cfgModel', 'cfgKey'].forEach(id => $(id).addEventListener('input', saveCfg));
+
+  $('modeSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    mode = b.dataset.mode;
+    document.querySelectorAll('#modeSeg button').forEach(x => x.classList.toggle('active', x === b));
+    $('statusText').textContent = mode === 'llm' ? 'LLM Mode' : 'Demo Mode';
+    if (mode === 'llm' && (!cfg.base || !cfg.key)) $('config').hidden = false;
+  });
+  $('settingsBtn').addEventListener('click', () => { $('config').hidden = !$('config').hidden; });
+
+  /* ------------------------------ 示例 chips ------------------------------ */
+  const EXAMPLES = [
+    '把「上线一个用户反馈收集功能」拆成可执行步骤',
+    '一个需求 reach=3000 impact=2 confidence=0.8 effort=3，用 RICE 算优先级',
+    '转化率从 280 提升到 320，环比增长了多少？算一下 (320-280)/280',
+    '现在几点？今天星期几？',
+    '统计这段话的字数：「我们要做一个让用户每天打卡的小功能。」'
+  ];
+  $('chips').innerHTML = EXAMPLES.map(e => `<button class="vg-chip">${esc(e)}</button>`).join('');
+  $('chips').addEventListener('click', e => { const b = e.target.closest('.vg-chip'); if (b) submit(b.textContent); });
+
+  /* ------------------------------ 输入框行为 ------------------------------ */
+  function autoGrow() { const ta = $('input'); ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; }
+  $('input').addEventListener('input', autoGrow);
+  $('input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+  });
+  $('send').addEventListener('click', () => submit());
+
+  /* ------------------------------ 主题 ------------------------------------ */
+  const root = document.documentElement;
+  function applyTheme(t) {
+    root.dataset.theme = t;
+    $('themeBtn').textContent = t === 'dark' ? '☀' : '☾';
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', t === 'dark' ? '#131210' : '#f0ede8');
+  }
+  (function initTheme() {
+    let t = null;
+    try { t = JSON.parse(localStorage.getItem('aipm.theme')); } catch (e) {}
+    if (t !== 'dark' && t !== 'light') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    applyTheme(t);
+  })();
+  $('themeBtn').addEventListener('click', () => {
+    const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(t);
+    try { localStorage.setItem('aipm.theme', JSON.stringify(t)); } catch (e) {}
+  });
+
+  $('input').focus();
+  </script>
+</body>
+</html>
