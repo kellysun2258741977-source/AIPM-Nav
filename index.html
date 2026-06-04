@@ -16,34 +16,70 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── 主题色变量（白天） ── */
+    :root {
+      --bg: #f0ede8;
+      --panel: #faf9f7;
+      --ink: #1a1a1a;
+      --border: #e8e5e0;
+      --border-soft: #ece9e4;
+      --muted-1: #999;
+      --muted-2: #aaa;
+      --muted-3: #bbb;
+      --faint: #ccc;
+      --link: #666;
+      --hover: #f2f0ec;
+      --divider: #ddd;
+      --shadow: rgba(0,0,0,0.06);
+    }
+    /* ── 主题色变量（黑夜） ── */
+    :root[data-theme="dark"] {
+      --bg: #131210;
+      --panel: #1c1b17;
+      --ink: #ede9e2;
+      --border: #2e2c27;
+      --border-soft: #272420;
+      --muted-1: #8f8a82;
+      --muted-2: #7d786f;
+      --muted-3: #8a857c;
+      --faint: #5a564f;
+      --link: #b3aea4;
+      --hover: #24221e;
+      --divider: #3a3731;
+      --shadow: rgba(0,0,0,0.45);
+    }
+
     body {
-      background: #f0ede8;
+      background: var(--bg);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 40px 20px;
+      transition: background-color 0.35s ease;
     }
 
     .vg {
-      background: #faf9f7;
+      background: var(--panel);
       width: 100%;
       max-width: 960px;
       border-radius: 20px;
       overflow: hidden;
-      border: 0.5px solid #e8e5e0;
+      border: 0.5px solid var(--border);
       font-family: 'Jost', sans-serif;
-      color: #1a1a1a;
-      box-shadow: 0 4px 40px rgba(0,0,0,0.06);
+      color: var(--ink);
+      box-shadow: 0 4px 40px var(--shadow);
+      transition: background-color 0.35s ease, border-color 0.35s ease;
     }
 
     /* ── Header ── */
     .vg-header {
       padding: 40px 52px 32px;
-      border-bottom: 1.5px solid #1a1a1a;
+      border-bottom: 1.5px solid var(--ink);
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
+      transition: border-color 0.35s ease;
     }
     .vg-eyebrow {
       font-family: 'Jost', sans-serif;
@@ -51,7 +87,7 @@
       font-weight: 300;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: #999;
+      color: var(--muted-1);
       margin-bottom: 12px;
     }
     .vg-title {
@@ -60,15 +96,39 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       line-height: 0.95;
-      color: #1a1a1a;
+      color: var(--ink);
       font-style: normal;
     }
     .vg-right { text-align: right; }
+    .vg-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-bottom: 14px;
+    }
+    .vg-icon-btn {
+      background: none;
+      border: 0.5px solid var(--border);
+      color: var(--muted-1);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Jost', sans-serif;
+      transition: all 0.2s ease;
+    }
+    .vg-icon-btn:hover { color: var(--ink); border-color: var(--ink); }
+    .vg-icon-btn.active { background: var(--ink); color: var(--panel); border-color: var(--ink); }
     .vg-clock {
       font-family: 'Playfair Display', serif;
       font-size: 28px;
       font-weight: 400;
-      color: #1a1a1a;
+      color: var(--ink);
       letter-spacing: 0.02em;
     }
     .vg-date {
@@ -77,14 +137,14 @@
       font-weight: 300;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: #aaa;
+      color: var(--muted-2);
       margin-top: 6px;
     }
 
     /* ── Search ── */
     .vg-search-row {
       padding: 16px 52px;
-      border-bottom: 0.5px solid #e8e5e0;
+      border-bottom: 0.5px solid var(--border);
       display: flex;
       align-items: center;
       gap: 14px;
@@ -94,10 +154,10 @@
       font-weight: 300;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #bbb;
+      color: var(--muted-3);
       white-space: nowrap;
     }
-    .vg-divider-v { width: 0.5px; height: 14px; background: #ddd; }
+    .vg-divider-v { width: 0.5px; height: 14px; background: var(--divider); }
     .vg-search-row input {
       background: none;
       border: none;
@@ -106,10 +166,53 @@
       font-size: 14px;
       font-weight: 300;
       letter-spacing: 0.03em;
-      color: #1a1a1a;
+      color: var(--ink);
       flex: 1;
+      min-width: 0;
     }
-    .vg-search-row input::placeholder { color: #ccc; }
+    .vg-search-row input::placeholder { color: var(--faint); }
+
+    .vg-engines { display: flex; gap: 2px; flex-shrink: 0; }
+    .vg-engine {
+      background: none;
+      border: 0;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--faint);
+      padding: 4px 7px;
+      border-radius: 5px;
+      transition: color 0.15s ease;
+    }
+    .vg-engine:hover { color: var(--muted-1); }
+    .vg-engine.active { color: var(--ink); font-weight: 500; }
+
+    /* ── 编辑工具条 ── */
+    .vg-edit-bar {
+      padding: 12px 52px;
+      border-bottom: 0.5px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: var(--hover);
+    }
+    .vg-edit-bar[hidden] { display: none; }
+    .vg-edit-bar button {
+      background: var(--panel);
+      border: 0.5px solid var(--border);
+      color: var(--link);
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .vg-edit-bar button:hover { color: var(--ink); border-color: var(--ink); }
 
     /* ── Grid ── */
     .vg-grid {
@@ -118,26 +221,27 @@
     }
     .vg-card {
       padding: 28px 32px;
-      border-right: 0.5px solid #e8e5e0;
-      border-bottom: 0.5px solid #e8e5e0;
-      transition: background 0.2s;
+      border-right: 0.5px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
+      transition: background 0.2s, border-color 0.35s ease;
     }
     .vg-card:nth-child(3n) { border-right: none; }
-    .vg-card:hover { background: #f2f0ec; }
+    .vg-card:last-child { border-right: none; }
+    .vg-card:hover { background: var(--hover); }
 
     .vg-card-num {
       font-family: 'Jost', sans-serif;
       font-size: 10px;
       font-weight: 300;
       letter-spacing: 0.2em;
-      color: #ccc;
+      color: var(--faint);
       margin-bottom: 12px;
     }
     .vg-card-title {
       font-family: 'Playfair Display', serif;
       font-size: 24px;
       font-weight: 600;
-      color: #1a1a1a;
+      color: var(--ink);
       margin: 0 0 4px;
       line-height: 1.1;
       letter-spacing: -0.01em;
@@ -149,7 +253,7 @@
       font-weight: 300;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: #bbb;
+      color: var(--muted-3);
       margin: 0 0 16px;
     }
 
@@ -157,9 +261,9 @@
     .vg-link {
       font-size: 13px;
       font-weight: 300;
-      color: #666;
+      color: var(--link);
       padding: 7px 0;
-      border-bottom: 0.5px solid #ece9e4;
+      border-bottom: 0.5px solid var(--border-soft);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -168,48 +272,124 @@
       transition: color 0.15s;
     }
     .vg-link:last-child { border-bottom: none; }
-    .vg-link:hover { color: #1a1a1a; }
+    .vg-link:hover { color: var(--ink); }
     .vg-link-mark {
       font-family: 'Playfair Display', serif;
       font-size: 14px;
-      color: #ccc;
+      color: var(--faint);
     }
+
+    /* ── 编辑模式下的链接行 ── */
+    .vg-link-edit {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 0.5px solid var(--border-soft);
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--link);
+    }
+    .vg-link-edit:last-child { border-bottom: none; }
+    .vg-link-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .vg-mini-btns { display: flex; gap: 8px; flex-shrink: 0; }
+    .vg-mini-btn {
+      background: none;
+      border: 0;
+      cursor: pointer;
+      color: var(--muted-3);
+      font-size: 13px;
+      padding: 2px;
+      font-family: 'Jost', sans-serif;
+      transition: color 0.15s ease;
+    }
+    .vg-mini-btn:hover { color: var(--ink); }
+
+    .vg-add-link {
+      margin-top: 12px;
+      width: 100%;
+      background: none;
+      border: 0.5px dashed var(--border);
+      color: var(--muted-2);
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 7px 10px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .vg-add-link:hover { color: var(--ink); border-color: var(--ink); }
+
+    /* ── 内联表单 ── */
+    .vg-form { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; }
+    .vg-form input {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 9px;
+      font-family: 'Jost', sans-serif;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+    }
+    .vg-form input:focus { border-color: var(--ink); }
+    .vg-form-btns { display: flex; gap: 6px; }
+    .vg-form-btns button {
+      flex: 1;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      padding: 7px;
+      border-radius: 6px;
+      border: 0.5px solid var(--border);
+      transition: all 0.15s ease;
+    }
+    .vg-form-save { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+    .vg-form-cancel { background: none; color: var(--link); }
+    .vg-form-cancel:hover { color: var(--ink); border-color: var(--ink); }
 
     /* ── Footer ── */
     .vg-footer {
       padding: 18px 52px;
-      border-top: 1.5px solid #1a1a1a;
+      border-top: 1.5px solid var(--ink);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: border-color 0.35s ease;
     }
     .vg-footer-l {
       font-family: 'Jost', sans-serif;
       font-size: 11px;
       font-weight: 300;
       letter-spacing: 0.1em;
-      color: #aaa;
+      color: var(--muted-2);
     }
     .vg-footer-r {
       font-size: 10px;
       font-weight: 300;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: #aaa;
+      color: var(--muted-2);
       display: flex;
       align-items: center;
       gap: 6px;
     }
     .vg-dot { width: 5px; height: 5px; background: #34c759; border-radius: 50%; }
 
+    .vg-noscript { padding: 28px 52px; color: var(--muted-1); font-size: 13px; }
+
     /* ── Responsive ── */
     @media (max-width: 680px) {
       .vg-grid { grid-template-columns: 1fr 1fr; }
-      .vg-card:nth-child(3n) { border-right: 0.5px solid #e8e5e0; }
+      .vg-card:nth-child(3n) { border-right: 0.5px solid var(--border); }
       .vg-card:nth-child(2n) { border-right: none; }
+      .vg-card:last-child { border-right: none; }
       .vg-title { font-size: 44px; }
       .vg-header { padding: 28px 24px 24px; }
       .vg-search-row { padding: 14px 24px; }
+      .vg-edit-bar { padding: 12px 24px; }
       .vg-footer { padding: 16px 24px; }
     }
   </style>
@@ -223,6 +403,10 @@
         <div class="vg-title">AIPM<br>Nav</div>
       </div>
       <div class="vg-right">
+        <div class="vg-actions">
+          <button class="vg-icon-btn" id="themeBtn" title="切换主题" aria-label="切换白天/黑夜主题">☾</button>
+          <button class="vg-icon-btn" id="editBtn" title="编辑链接" aria-label="编辑链接">✎</button>
+        </div>
         <div class="vg-clock" id="clk">--:--:--</div>
         <div class="vg-date" id="dt">--</div>
       </div>
@@ -232,77 +416,22 @@
       <span class="vg-search-label">Search</span>
       <div class="vg-divider-v"></div>
       <input id="gs" type="search" aria-label="全局搜索" placeholder="搜索工具、资源、文档..." />
+      <div class="vg-engines" id="engines">
+        <button class="vg-engine" data-engine="baidu">百度</button>
+        <button class="vg-engine" data-engine="bing">Bing</button>
+        <button class="vg-engine" data-engine="google">Google</button>
+      </div>
     </div>
 
-    <div class="vg-grid">
-
-      <div class="vg-card">
-        <div class="vg-card-num">01</div>
-        <div class="vg-card-title">学习资源</div>
-        <div class="vg-card-sub">Learning</div>
-        <div class="vg-links">
-          <a class="vg-link" href="https://productschool.com" target="_blank" rel="noopener noreferrer">Product School <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://www.reforge.com" target="_blank" rel="noopener noreferrer">Reforge <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://roadmap.sh/product-manager" target="_blank" rel="noopener noreferrer">PM Roadmap <span class="vg-link-mark">→</span></a>
-        </div>
-      </div>
-
-      <div class="vg-card">
-        <div class="vg-card-num">02</div>
-        <div class="vg-card-title">实验平台</div>
-        <div class="vg-card-sub">Experiment</div>
-        <div class="vg-links">
-          <a class="vg-link" href="https://claude.ai" target="_blank" rel="noopener noreferrer">Claude <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://coze.cn" target="_blank" rel="noopener noreferrer">扣子 Coze <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://n8n.io" target="_blank" rel="noopener noreferrer">n8n 工作流 <span class="vg-link-mark">→</span></a>
-        </div>
-      </div>
-
-      <div class="vg-card">
-        <div class="vg-card-num">03</div>
-        <div class="vg-card-title">写作工具</div>
-        <div class="vg-card-sub">Writing</div>
-        <div class="vg-links">
-          <a class="vg-link" href="https://notion.so" target="_blank" rel="noopener noreferrer">Notion <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://www.feishu.cn" target="_blank" rel="noopener noreferrer">飞书文档 <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://obsidian.md" target="_blank" rel="noopener noreferrer">Obsidian <span class="vg-link-mark">→</span></a>
-        </div>
-      </div>
-
-      <div class="vg-card">
-        <div class="vg-card-num">04</div>
-        <div class="vg-card-title">行业洞察</div>
-        <div class="vg-card-sub">Insights</div>
-        <div class="vg-links">
-          <a class="vg-link" href="https://www.producthunt.com" target="_blank" rel="noopener noreferrer">Product Hunt <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://techcrunch.com/ai" target="_blank" rel="noopener noreferrer">TechCrunch AI <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://www.36kr.com" target="_blank" rel="noopener noreferrer">36氪 <span class="vg-link-mark">→</span></a>
-        </div>
-      </div>
-
-      <div class="vg-card">
-        <div class="vg-card-num">05</div>
-        <div class="vg-card-title">Vibe Coding</div>
-        <div class="vg-card-sub">Build</div>
-        <div class="vg-links">
-          <a class="vg-link" href="https://trae.ai" target="_blank" rel="noopener noreferrer">Trae IDE <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://bolt.new" target="_blank" rel="noopener noreferrer">Bolt.new <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://cursor.sh" target="_blank" rel="noopener noreferrer">Cursor <span class="vg-link-mark">→</span></a>
-        </div>
-      </div>
-
-      <div class="vg-card">
-        <div class="vg-card-num">06</div>
-        <div class="vg-card-title">求职工作台</div>
-        <div class="vg-card-sub">Career</div>
-        <div class="vg-links">
-          <a class="vg-link" href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://www.zhipin.com" target="_blank" rel="noopener noreferrer">BOSS 直聘 <span class="vg-link-mark">→</span></a>
-          <a class="vg-link" href="https://www.lagou.com" target="_blank" rel="noopener noreferrer">拉勾网 <span class="vg-link-mark">→</span></a>
-        </div>
-      </div>
-
+    <div class="vg-edit-bar" id="editBar" hidden>
+      <button data-act="reset">恢复默认链接</button>
+      <button data-act="clearclicks">清空点击记录</button>
+      <button data-act="export">导出备份</button>
+      <button data-act="import">导入备份</button>
     </div>
+
+    <div class="vg-grid" id="grid"></div>
+    <noscript><div class="vg-noscript">本页需要开启 JavaScript 才能显示导航内容。</div></noscript>
 
     <div class="vg-footer">
       <span class="vg-footer-l">Kelly · AIPM Nav · <span id="yr">2025</span></span>
@@ -312,21 +441,311 @@
   </div>
 
   <script>
+    /* ====== 默认数据（用户未自定义时使用） ====== */
+    const DEFAULT_DATA = [
+      { title: '学习资源', sub: 'Learning', links: [
+        { name: 'Product School', url: 'https://productschool.com' },
+        { name: 'Reforge', url: 'https://www.reforge.com' },
+        { name: 'PM Roadmap', url: 'https://roadmap.sh/product-manager' }
+      ]},
+      { title: '实验平台', sub: 'Experiment', links: [
+        { name: 'Claude', url: 'https://claude.ai' },
+        { name: '扣子 Coze', url: 'https://coze.cn' },
+        { name: 'n8n 工作流', url: 'https://n8n.io' }
+      ]},
+      { title: '写作工具', sub: 'Writing', links: [
+        { name: 'Notion', url: 'https://notion.so' },
+        { name: '飞书文档', url: 'https://www.feishu.cn' },
+        { name: 'Obsidian', url: 'https://obsidian.md' }
+      ]},
+      { title: '行业洞察', sub: 'Insights', links: [
+        { name: 'Product Hunt', url: 'https://www.producthunt.com' },
+        { name: 'TechCrunch AI', url: 'https://techcrunch.com/ai' },
+        { name: '36氪', url: 'https://www.36kr.com' }
+      ]},
+      { title: 'Vibe Coding', sub: 'Build', links: [
+        { name: 'Trae IDE', url: 'https://trae.ai' },
+        { name: 'Bolt.new', url: 'https://bolt.new' },
+        { name: 'Cursor', url: 'https://cursor.sh' }
+      ]},
+      { title: '求职工作台', sub: 'Career', links: [
+        { name: 'LinkedIn', url: 'https://www.linkedin.com' },
+        { name: 'BOSS 直聘', url: 'https://www.zhipin.com' },
+        { name: '拉勾网', url: 'https://www.lagou.com' }
+      ]}
+    ];
+
+    const ENGINES = {
+      baidu:  { label: '百度',   url: 'https://www.baidu.com/s?wd=' },
+      bing:   { label: 'Bing',   url: 'https://www.bing.com/search?q=' },
+      google: { label: 'Google', url: 'https://www.google.com/search?q=' }
+    };
+
+    const KEYS = { links: 'aipm.links', theme: 'aipm.theme', engine: 'aipm.engine', clicks: 'aipm.clicks' };
+
+    /* ====== 本地存储封装 ====== */
+    const store = {
+      get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } },
+      set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} },
+      del(key) { try { localStorage.removeItem(key); } catch (e) {} }
+    };
+
+    function loadData() {
+      const d = store.get(KEYS.links, null);
+      if (Array.isArray(d) && d.length) return d;
+      return JSON.parse(JSON.stringify(DEFAULT_DATA));
+    }
+    function saveData() { store.set(KEYS.links, data); }
+
+    let data = loadData();
+    let clicks = store.get(KEYS.clicks, {}) || {};
+    let editMode = false;
+    let formState = null; // { cat: 分类下标, link: 链接下标 | null(表示新增) }
+
+    const $ = id => document.getElementById(id);
+
+    /* ====== 工具 ====== */
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function normUrl(u) {
+      u = String(u).trim();
+      if (!u) return '';
+      if (!/^https?:\/\//i.test(u) && !/^mailto:/i.test(u)) u = 'https://' + u;
+      return u;
+    }
+
+    /* ====== 渲染 ====== */
+    function frequentLinks() {
+      const all = [];
+      data.forEach(cat => cat.links.forEach(l => {
+        const n = clicks[l.url] || 0;
+        if (n > 0) all.push({ name: l.name, url: l.url, n });
+      }));
+      all.sort((a, b) => b.n - a.n);
+      return all.slice(0, 6);
+    }
+
+    function linkForm(name, url) {
+      return '<div class="vg-form">' +
+        `<input class="vg-form-name" type="text" placeholder="名称，如 Notion" value="${esc(name)}" />` +
+        `<input class="vg-form-url" type="text" placeholder="网址，如 notion.so" value="${esc(url)}" />` +
+        '<div class="vg-form-btns">' +
+        '<button class="vg-form-save" data-act="save">保存</button>' +
+        '<button class="vg-form-cancel" data-act="cancel">取消</button>' +
+        '</div></div>';
+    }
+
+    function render() {
+      let html = '';
+
+      // 常用卡片：仅普通模式且有点击记录时显示
+      if (!editMode) {
+        const freq = frequentLinks();
+        if (freq.length) {
+          html += '<div class="vg-card">' +
+            '<div class="vg-card-num">★</div>' +
+            '<div class="vg-card-title">常用</div>' +
+            '<div class="vg-card-sub">Frequent</div>' +
+            '<div class="vg-links">' +
+            freq.map(l => `<a class="vg-link" href="${esc(l.url)}" data-url="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.name)} <span class="vg-link-mark">&rarr;</span></a>`).join('') +
+            '</div></div>';
+        }
+      }
+
+      // 分类卡片
+      data.forEach((cat, ci) => {
+        const num = String(ci + 1).padStart(2, '0');
+        html += '<div class="vg-card">' +
+          `<div class="vg-card-num">${num}</div>` +
+          `<div class="vg-card-title">${esc(cat.title)}</div>` +
+          `<div class="vg-card-sub">${esc(cat.sub)}</div>` +
+          '<div class="vg-links">';
+
+        cat.links.forEach((l, li) => {
+          if (editMode && formState && formState.cat === ci && formState.link === li) {
+            html += linkForm(l.name, l.url);
+          } else if (editMode) {
+            html += '<div class="vg-link-edit">' +
+              `<span class="vg-link-name">${esc(l.name)}</span>` +
+              '<span class="vg-mini-btns">' +
+              `<button class="vg-mini-btn" data-act="edit" data-cat="${ci}" data-link="${li}" title="修改">&#9998;</button>` +
+              `<button class="vg-mini-btn" data-act="del" data-cat="${ci}" data-link="${li}" title="删除">&times;</button>` +
+              '</span></div>';
+          } else {
+            html += `<a class="vg-link" href="${esc(l.url)}" data-url="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.name)} <span class="vg-link-mark">&rarr;</span></a>`;
+          }
+        });
+
+        html += '</div>'; // .vg-links
+
+        if (editMode) {
+          if (formState && formState.cat === ci && formState.link === null) {
+            html += linkForm('', '');
+          } else {
+            html += `<button class="vg-add-link" data-act="add" data-cat="${ci}">+ 添加链接</button>`;
+          }
+        }
+
+        html += '</div>'; // .vg-card
+      });
+
+      $('grid').innerHTML = html;
+    }
+
+    function focusForm() {
+      const el = document.querySelector('.vg-form .vg-form-name');
+      if (el) el.focus();
+    }
+
+    function saveForm(btn) {
+      const form = btn.closest('.vg-form');
+      const name = form.querySelector('.vg-form-name').value.trim();
+      const url = normUrl(form.querySelector('.vg-form-url').value);
+      if (!name || !url) { alert('请填写名称和网址'); return; }
+      const { cat, link } = formState;
+      if (link === null) data[cat].links.push({ name, url });
+      else data[cat].links[link] = { name, url };
+      saveData();
+      formState = null;
+      render();
+    }
+
+    /* ====== 网格交互（事件委托） ====== */
+    $('grid').addEventListener('click', function (e) {
+      const a = e.target.closest('a.vg-link');
+      if (a && !editMode) {
+        const url = a.dataset.url;
+        if (url) { clicks[url] = (clicks[url] || 0) + 1; store.set(KEYS.clicks, clicks); setTimeout(render, 0); }
+        return; // 不拦截，照常在新标签页打开
+      }
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const act = btn.dataset.act;
+      if (act === 'add') { formState = { cat: +btn.dataset.cat, link: null }; render(); focusForm(); }
+      else if (act === 'edit') { formState = { cat: +btn.dataset.cat, link: +btn.dataset.link }; render(); focusForm(); }
+      else if (act === 'del') { data[+btn.dataset.cat].links.splice(+btn.dataset.link, 1); saveData(); render(); }
+      else if (act === 'cancel') { formState = null; render(); }
+      else if (act === 'save') { saveForm(btn); }
+    });
+
+    $('grid').addEventListener('keydown', function (e) {
+      const form = e.target.closest && e.target.closest('.vg-form');
+      if (!form) return;
+      if (e.key === 'Enter') { e.preventDefault(); saveForm(form.querySelector('.vg-form-save')); }
+      else if (e.key === 'Escape') { formState = null; render(); }
+    });
+
+    /* ====== 编辑模式开关 ====== */
+    $('editBtn').addEventListener('click', function () {
+      editMode = !editMode;
+      formState = null;
+      this.classList.toggle('active', editMode);
+      $('editBar').hidden = !editMode;
+      render();
+    });
+
+    /* ====== 编辑工具条 ====== */
+    $('editBar').addEventListener('click', function (e) {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const act = btn.dataset.act;
+      if (act === 'reset') {
+        if (confirm('确定恢复成默认链接吗？你自己添加和修改的链接会被清除。')) {
+          store.del(KEYS.links); data = loadData(); formState = null; render();
+        }
+      } else if (act === 'clearclicks') {
+        if (confirm('确定清空点击记录吗？“常用”里的内容会被清除。')) {
+          clicks = {}; store.del(KEYS.clicks); render();
+        }
+      } else if (act === 'export') {
+        exportBackup();
+      } else if (act === 'import') {
+        importBackup();
+      }
+    });
+
+    function exportBackup() {
+      const payload = JSON.stringify({ links: data, clicks: clicks }, null, 2);
+      if (navigator.clipboard) { navigator.clipboard.writeText(payload).catch(() => {}); }
+      try {
+        const blob = new Blob([payload], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'aipm-nav-backup.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      } catch (e) {}
+      alert('备份已下载，同时复制到了剪贴板。换电脑/浏览器时，用“导入备份”粘贴回来即可。');
+    }
+
+    function importBackup() {
+      const text = prompt('把之前导出的备份内容整段粘贴到这里：');
+      if (!text) return;
+      try {
+        const obj = JSON.parse(text);
+        if (Array.isArray(obj.links) && obj.links.length) { data = obj.links; saveData(); }
+        if (obj.clicks && typeof obj.clicks === 'object') { clicks = obj.clicks; store.set(KEYS.clicks, clicks); }
+        formState = null; render();
+        alert('导入成功！');
+      } catch (e) { alert('导入失败：内容格式不正确，请确认粘贴的是完整的备份。'); }
+    }
+
+    /* ====== 主题 ====== */
+    const root = document.documentElement;
+    function applyTheme(t) {
+      root.dataset.theme = t;
+      $('themeBtn').textContent = t === 'dark' ? '☀' : '☾';
+      $('themeBtn').title = t === 'dark' ? '切换到白天' : '切换到黑夜';
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', t === 'dark' ? '#131210' : '#f0ede8');
+    }
+    function initTheme() {
+      let t = store.get(KEYS.theme, null);
+      if (t !== 'dark' && t !== 'light') {
+        t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      applyTheme(t);
+    }
+    $('themeBtn').addEventListener('click', function () {
+      const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(t); store.set(KEYS.theme, t);
+    });
+    initTheme();
+
+    /* ====== 搜索引擎 ====== */
+    let engine = store.get(KEYS.engine, 'baidu');
+    if (!ENGINES[engine]) engine = 'baidu';
+    function markEngine() {
+      document.querySelectorAll('.vg-engine').forEach(b => b.classList.toggle('active', b.dataset.engine === engine));
+    }
+    $('engines').addEventListener('click', function (e) {
+      const b = e.target.closest('.vg-engine');
+      if (!b) return;
+      engine = b.dataset.engine;
+      store.set(KEYS.engine, engine);
+      markEngine();
+    });
+    markEngine();
+
+    $('gs').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && this.value.trim()) {
+        window.open(ENGINES[engine].url + encodeURIComponent(this.value.trim()), '_blank');
+      }
+    });
+
+    /* ====== 时钟 & 年份 ====== */
     function tick() {
       const n = new Date();
-      document.getElementById('clk').textContent = n.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      document.getElementById('dt').textContent = n.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
+      $('clk').textContent = n.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      $('dt').textContent = n.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
     }
     tick();
     setInterval(tick, 1000);
+    $('yr').textContent = new Date().getFullYear();
 
-    document.getElementById('yr').textContent = new Date().getFullYear();
-
-    document.getElementById('gs').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && this.value.trim()) {
-        window.open('https://www.google.com/search?q=' + encodeURIComponent(this.value), '_blank');
-      }
-    });
+    /* ====== 首次渲染 ====== */
+    render();
   </script>
 </body>
 </html>
