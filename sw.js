@@ -1,5 +1,5 @@
 /* AIPM Nav Service Worker —— 提供离线访问与“添加到主屏”支持 */
-const CACHE = 'aipm-nav-v1';
+const CACHE = 'aipm-nav-v2';
 const SHELL = [
   './',
   './index.html',
