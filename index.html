@@ -27,11 +27,11 @@
       --ink: #1a1a1a;
       --border: #e8e5e0;
       --border-soft: #ece9e4;
-      --muted-1: #999;
-      --muted-2: #aaa;
-      --muted-3: #bbb;
-      --faint: #ccc;
-      --link: #666;
+      --muted-1: #8a8a8a;
+      --muted-2: #888;
+      --muted-3: #949494;
+      --faint: #b0b0b0;
+      --link: #3f3f3f;
       --hover: #f2f0ec;
       --divider: #ddd;
       --shadow: rgba(0,0,0,0.06);
@@ -43,11 +43,11 @@
       --ink: #ede9e2;
       --border: #2e2c27;
       --border-soft: #272420;
-      --muted-1: #8f8a82;
-      --muted-2: #7d786f;
-      --muted-3: #8a857c;
-      --faint: #5a564f;
-      --link: #b3aea4;
+      --muted-1: #a39e95;
+      --muted-2: #9b968d;
+      --muted-3: #a8a39a;
+      --faint: #837d73;
+      --link: #cdc8be;
       --hover: #24221e;
       --divider: #3a3731;
       --shadow: rgba(0,0,0,0.45);
@@ -168,7 +168,7 @@
       outline: none;
       font-family: 'Jost', sans-serif;
       font-size: 14px;
-      font-weight: 300;
+      font-weight: 400;
       letter-spacing: 0.03em;
       color: var(--ink);
       flex: 1;
@@ -279,8 +279,8 @@
 
     .vg-links { display: flex; flex-direction: column; }
     .vg-link {
-      font-size: 13px;
-      font-weight: 300;
+      font-size: 14px;
+      font-weight: 400;
       color: var(--link);
       padding: 7px 0;
       border-bottom: 0.5px solid var(--border-soft);
@@ -322,8 +322,8 @@
       gap: 6px;
       padding: 7px 0;
       border-bottom: 0.5px solid var(--border-soft);
-      font-size: 13px;
-      font-weight: 300;
+      font-size: 14px;
+      font-weight: 400;
       color: var(--link);
     }
     .vg-link-edit:last-child { border-bottom: none; }
@@ -430,8 +430,20 @@
       .vg-title { font-size: 44px; }
       .vg-header { padding: 28px 24px 24px; }
       .vg-search-row { padding: 14px 24px; }
+      .vg-search-row input { font-size: 15px; }
       .vg-edit-bar { padding: 12px 24px; }
       .vg-footer { padding: 16px 24px; }
+      /* 移动端正文放大、点击区加大，提升可读性 */
+      .vg-card { padding: 26px 24px; }
+      .vg-link, .vg-link-edit { font-size: 15px; padding-top: 9px; padding-bottom: 9px; }
+      .vg-card-sub { font-size: 11px; }
+      .vg-card-num { font-size: 11px; }
+      .vg-fav, .vg-fav img { width: 18px; height: 18px; }
+      .vg-mono { font-size: 12px; }
+    }
+    @media (max-width: 480px) {
+      .vg-grid { grid-template-columns: 1fr; }
+      .vg-card:nth-child(2n) { border-right: none; }
     }
     @media (max-width: 480px) {
       .vg-grid { grid-template-columns: 1fr; }
