@@ -7,6 +7,15 @@
 
 let __id = 0;
 const newId = () => `call_demo_${Date.now()}_${++__id}`;
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// 把一段文本切成小块，通过 onToken 模拟真实模型的 token 流，
+// 让演示模式与真实模式共用同一套「逐字呈现」的 UI。
+async function emit(content, onToken) {
+  if (!onToken || !content) return;
+  const chunks = content.match(/[^]{1,2}/gu) || [content];
+  for (const c of chunks) { onToken(c); await sleep(16); }
+}
 
 // 从想法里提取一个像样的标题（去掉常见前缀，截断）。
 function deriveTitle(idea) {
@@ -80,20 +89,58 @@ function toolCall(name, args) {
   };
 }
 
-// 扫描历史，判断已经走到哪一步 + 取出 idea 与澄清答案。
+// 扫描历史，判断已经走到哪一步 + 取出 idea 与各轮澄清答案（支持多轮）。
 function readState(messages) {
   const idea = (messages.find(m => m.role === "user")?.content || "").replace(/^产品想法：/, "");
-  const calledNames = new Set();
-  let answers = null;
+  let clarifyCount = 0, storiesDone = false, prdDone = false;
+  const rounds = [];
   for (const m of messages) {
     if (m.role === "assistant" && m.tool_calls) {
-      m.tool_calls.forEach(tc => calledNames.add(tc.function.name));
+      m.tool_calls.forEach(tc => {
+        if (tc.function.name === "clarify_requirements") clarifyCount++;
+        if (tc.function.name === "draft_user_stories") storiesDone = true;
+        if (tc.function.name === "compose_prd") prdDone = true;
+      });
     }
     if (m.role === "tool" && m.name === "clarify_requirements") {
-      try { answers = JSON.parse(m.content).answers || null; } catch { /* ignore */ }
+      try { rounds.push(JSON.parse(m.content).answers || {}); } catch { /* ignore */ }
     }
   }
-  return { idea, calledNames, answers };
+  // 后一轮答案覆盖前一轮（追问用于精化）
+  const answers = Object.assign({}, ...rounds);
+  return { idea, clarifyCount, storiesDone, prdDone, answers };
+}
+
+const hasNumber = (s) => /[0-9０-９%％]/.test(s || "");
+
+// 判断是否值得再追问一轮：指标没量化，或目标用户过于笼统。
+function needFollowUp(ans) {
+  return !hasNumber(ans.success_metric) || (ans.target_user || "").trim().length < 5;
+}
+
+// 针对性的追问（最多两题），体现 PM「把指标钉成可量化目标」的习惯。
+function buildFollowUp(ans) {
+  const qs = [];
+  if (!hasNumber(ans.success_metric)) {
+    qs.push({
+      id: "success_metric",
+      question: `你用「${ans.success_metric || "成功指标"}」判断成功——能再钉成一个量化目标吗？给个数字或区间。`,
+      why: "没有量化的指标无法指导功能取舍与优先级。",
+      options: ["次月留存 ≥ 30%", "周活跃用户 ≥ 50%", "付费转化 ≥ 5%"]
+    });
+  }
+  if ((ans.target_user || "").trim().length < 5) {
+    qs.push({
+      id: "target_user",
+      question: "再把目标用户说具体些：他们在什么场景、有什么特征？",
+      why: "用户画像越具体，后续需求取舍越有依据。",
+      options: ["先聚焦一类高频重度用户", "覆盖尽量广的大众用户", "B 端团队 / 企业"]
+    });
+  }
+  if (qs.length === 0) {
+    qs.push({ id: "extra", question: "还有什么关键约束需要我知道的吗？", why: "查漏补缺。", options: ["暂时没有了"] });
+  }
+  return qs;
 }
 
 function buildQuestions() {
@@ -224,56 +271,76 @@ function buildPrd(idea, ans) {
   };
 }
 
+// 组装一条 assistant 消息，并按需把 content 以模拟 token 流推送出去。
+async function reply(content, tool_calls, onToken) {
+  await emit(content, onToken);
+  return { role: "assistant", content, tool_calls: tool_calls || [] };
+}
+
 export function makeDemoProvider() {
   return {
     name: "demo",
-    async chat({ messages }) {
-      const { idea, calledNames, answers } = readState(messages);
+    async chat({ messages, onToken }) {
+      const st = readState(messages);
+      const ans = st.answers || {};
 
-      // 第 1 步：澄清
-      if (!calledNames.has("clarify_requirements")) {
-        return {
-          role: "assistant",
-          content: `用户给的想法还比较粗略（「${deriveTitle(idea)}」）。在动手写需求前，我需要先锁定三个最关键的不确定点：目标用户、核心问题、成功指标，再补一个 MVP 范围问题。我来发起澄清。`,
-          tool_calls: [toolCall("clarify_requirements", {
+      // 第 1 步：首轮澄清
+      if (st.clarifyCount === 0) {
+        return reply(
+          `用户给的想法还比较粗略（「${deriveTitle(st.idea)}」）。动手写需求前，我先锁定三个最关键的不确定点：目标用户、核心问题、成功指标，再补一个 MVP 范围问题。我来发起澄清。`,
+          [toolCall("clarify_requirements", {
             thought: "先澄清目标用户 / 核心问题 / 成功指标 / MVP 范围这四个关键点。",
             questions: buildQuestions()
-          })]
-        };
+          })],
+          onToken
+        );
+      }
+
+      // 第 1.5 步：必要时追问一轮（最多两轮）
+      if (st.clarifyCount === 1 && needFollowUp(ans)) {
+        const reason = !hasNumber(ans.success_metric)
+          ? `成功指标「${ans.success_metric || "（未填）"}」还不够量化`
+          : "目标用户画像还比较笼统";
+        return reply(
+          `用户的回答里，${reason}——这会让后面的功能取舍失去抓手。我再追问一轮，把它钉成可衡量/更具体的输入，再进入用户故事。`,
+          [toolCall("clarify_requirements", {
+            thought: "对含糊的关键信息做针对性追问（量化指标 / 细化用户），避免带着模糊前提往下走。",
+            questions: buildFollowUp(ans)
+          })],
+          onToken
+        );
       }
 
       // 第 2 步：用户故事
-      if (!calledNames.has("draft_user_stories")) {
-        const ans = answers || {};
-        return {
-          role: "assistant",
-          content: `已经拿到用户的澄清答案：目标用户是「${ans.target_user || "（待补充）"}」，最痛的问题是「${ans.core_problem || "（待补充）"}」。据此我把需求拆成几条带验收标准的用户故事，并按对北极星指标的贡献排优先级——核心主流程和数据沉淀定为 P0。`,
-          tool_calls: [toolCall("draft_user_stories", {
+      if (!st.storiesDone) {
+        return reply(
+          `澄清完成：目标用户「${ans.target_user || "（待补充）"}」，最痛的问题「${ans.core_problem || "（待补充）"}」，成功指标「${ans.success_metric || "（待补充）"}」。据此我把需求拆成带验收标准的用户故事，并按对北极星指标的贡献排优先级——核心主流程和数据沉淀定为 P0。`,
+          [toolCall("draft_user_stories", {
             thought: "围绕核心动作拆故事，P0 聚焦激活与留存，P1/P2 服务增长与传播。",
-            stories: buildStories(idea, ans)
-          })]
-        };
+            stories: buildStories(st.idea, ans)
+          })],
+          onToken
+        );
       }
 
       // 第 3 步：PRD
-      if (!calledNames.has("compose_prd")) {
-        const ans = answers || {};
-        return {
-          role: "assistant",
-          content: "用户故事已就绪。最后我把背景、目标与非目标、用户画像、功能点、指标和风险整合成一份完整 PRD —— 特别用「非目标」明确 v1 边界，避免范围蔓延。",
-          tool_calls: [toolCall("compose_prd", {
+      if (!st.prdDone) {
+        return reply(
+          "用户故事已就绪。最后我把背景、目标与非目标、用户画像、功能点、指标和风险整合成一份完整 PRD —— 特别用「非目标」明确 v1 边界，避免范围蔓延。",
+          [toolCall("compose_prd", {
             thought: "把前两步的产出收敛成一份可直接评审的 PRD，并显式划定边界。",
-            ...buildPrd(idea, ans)
-          })]
-        };
+            ...buildPrd(st.idea, ans)
+          })],
+          onToken
+        );
       }
 
-      // 收尾
-      return {
-        role: "assistant",
-        content: "PRD 草稿已生成 ✅ 你可以在上方复制为 Markdown 或下载。这只是 v1 草稿——建议接下来拿它去和 3~5 位真实目标用户验证「最痛的一刀」，再据反馈迭代功能优先级。",
-        tool_calls: []
-      };
+      // 收尾（最终交付，无工具调用）
+      return reply(
+        "PRD 草稿已生成 ✅ 你可以在上方复制为 Markdown 或下载。这只是 v1 草稿——建议接下来拿它去和 3~5 位真实目标用户验证「最痛的一刀」，再据反馈迭代功能优先级。",
+        [],
+        onToken
+      );
     }
   };
 }

@@ -8,7 +8,6 @@ const el = (tag, cls, html) => {
   return n;
 };
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 const STEP_META = {
   think:   { tag: "思考 · THINK",   ico: "💭" },
@@ -43,20 +42,6 @@ export function createUI() {
     return { step, body };
   }
 
-  // 逐字打字机效果（带封顶时长，避免长文本等待过久）
-  async function typewriter(node, text) {
-    node.classList.add("caret");
-    const total = 700; // 总时长上限 ~0.7s
-    const step = Math.max(1, Math.ceil(text.length / (total / 16)));
-    for (let i = 0; i <= text.length; i += step) {
-      node.textContent = text.slice(0, i);
-      scrollToEnd();
-      await sleep(16);
-    }
-    node.textContent = text;
-    node.classList.remove("caret");
-  }
-
   return {
     reset() {
       trace.innerHTML = "";
@@ -71,9 +56,31 @@ export function createUI() {
       });
     },
 
-    async thought(text) {
-      const { body } = makeStep("think");
-      await typewriter(body, text);
+    // 开一个流式步骤：token 逐字进入，结束时再根据是否调用工具定型为「思考」或「交付」。
+    beginStream() {
+      const step = el("div", "step think");
+      const head = el("div", "step-head");
+      const ico = el("span", "step-ico", STEP_META.think.ico);
+      const tag = el("span", "step-tag", STEP_META.think.tag);
+      head.append(ico, tag);
+      const body = el("div", "step-body caret");
+      step.append(head, body);
+      trace.append(step);
+      scrollToEnd();
+
+      let text = "";
+      return {
+        push(t) { text += t; body.textContent = text; scrollToEnd(); },
+        finalize(kind) {
+          body.classList.remove("caret");
+          if (!text.trim()) { step.remove(); return; } // 模型直接调工具、没有前言
+          const meta = STEP_META[kind] || STEP_META.think;
+          step.className = `step ${kind}`;
+          ico.textContent = meta.ico;
+          tag.textContent = meta.tag;
+        },
+        cancel() { step.remove(); }
+      };
     },
 
     action(name, args) {
@@ -97,11 +104,6 @@ export function createUI() {
       else if (name === "compose_prd") txt = "PRD 各模块已组装完成";
       body.append(el("span", "obs-pill", `↩ ${esc(txt)}`));
       scrollToEnd();
-    },
-
-    async final(text) {
-      const { body } = makeStep("answer");
-      await typewriter(body, text);
     },
 
     error(msg) {

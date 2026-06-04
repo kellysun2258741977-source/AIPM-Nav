@@ -118,7 +118,7 @@ function buildProvider() {
 function makeHandlers() {
   const phaseOf = { clarify_requirements: 1, draft_user_stories: 2, compose_prd: 3 };
   return {
-    async onThought(text) { await ui.thought(text); },
+    beginStream() { return ui.beginStream(); },
     async onAction(name, args) {
       if (phaseOf[name]) ui.setPhase(phaseOf[name]);
       ui.action(name, args);
@@ -143,9 +143,8 @@ function makeHandlers() {
       // 用户故事 / PRD 已经以富文本形式呈现，无需重复 pill；仅澄清环节补一个观察提示。
       if (name === "clarify_requirements") ui.observation(name, result);
     },
-    async onFinal(text) {
+    onDone() {
       ui.setPhase(4); // 全部置为已完成
-      await ui.final(text);
     }
   };
 }
