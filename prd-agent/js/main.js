@@ -39,6 +39,13 @@ $("themeBtn").addEventListener("click", () => {
   const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   applyTheme(t); store.set(KEY.theme, t);
 });
+// 跟随系统：未手动设置主题时，系统切换深/浅色即实时跟随
+if (window.matchMedia) {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  const onSysTheme = (e) => { if (store.get(KEY.theme, null) === null) applyTheme(e.matches ? "dark" : "light"); };
+  if (mq.addEventListener) mq.addEventListener("change", onSysTheme);
+  else if (mq.addListener) mq.addListener(onSysTheme);
+}
 
 /* ───────── 设置 / BYOK ───────── */
 function getSettings() { return store.get(KEY.settings, { preset: "demo", baseURL: "", apiKey: "", model: "" }); }
