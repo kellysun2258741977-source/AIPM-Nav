@@ -85,6 +85,8 @@ function selectPresetUI(preset) {
 $("settingsBtn").addEventListener("click", openSettings);
 $("settingsClose").addEventListener("click", closeSettings);
 $("settingsModal").addEventListener("click", (e) => { if (e.target.id === "settingsModal") closeSettings(); });
+// Esc 关闭设置弹窗（与 Image Studio 行为一致）
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("settingsModal").hidden) closeSettings(); });
 
 document.querySelectorAll("#presetSeg .seg-btn").forEach(b =>
   b.addEventListener("click", () => selectPresetUI(b.dataset.preset)));
