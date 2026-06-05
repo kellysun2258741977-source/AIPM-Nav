@@ -129,11 +129,12 @@
     .vg-icon-btn:hover { color: var(--ink); border-color: var(--ink); }
     .vg-icon-btn.active { background: var(--ink); color: var(--panel); border-color: var(--ink); }
     .vg-clock {
-      font-family: 'Playfair Display', serif;
-      font-size: 28px;
-      font-weight: 400;
+      font-family: 'Jost', sans-serif;
+      font-size: 26px;
+      font-weight: 300;
       color: var(--ink);
-      letter-spacing: 0.02em;
+      letter-spacing: 0.06em;
+      font-variant-numeric: tabular-nums;
     }
     .vg-date {
       font-family: 'Jost', sans-serif;
@@ -163,8 +164,9 @@
     }
     .vg-divider-v { width: 0.5px; height: 14px; background: var(--divider); }
     .vg-search-row input {
-      background: none;
-      border: none;
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
       outline: none;
       font-family: 'Jost', sans-serif;
       font-size: 14px;
@@ -173,6 +175,12 @@
       color: var(--ink);
       flex: 1;
       min-width: 0;
+      padding: 10px 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .vg-search-row input:focus {
+      border-color: var(--ink);
+      box-shadow: 0 0 0 3px var(--hover);
     }
     .vg-search-row input::placeholder { color: var(--faint); }
 
@@ -1022,6 +1030,13 @@
       applyTheme(t); store.set(KEYS.theme, t);
     });
     initTheme();
+    // 跟随系统：未手动设置主题时，系统切换深/浅色即实时跟随
+    if (window.matchMedia) {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const onSysTheme = e => { if (store.get(KEYS.theme, null) === null) applyTheme(e.matches ? 'dark' : 'light'); };
+      if (mq.addEventListener) mq.addEventListener('change', onSysTheme);
+      else if (mq.addListener) mq.addListener(onSysTheme);
+    }
 
     /* ====== 搜索引擎 ====== */
     let engine = store.get(KEYS.engine, 'baidu');
