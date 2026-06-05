@@ -129,11 +129,15 @@ function renderTemplates() {
 }
 
 /* ───────── 改图：上传参考图 ───────── */
+let dropUrls = [];   // 当前预览用的 blob URL，重建前统一回收，避免内存泄漏
 function refreshDropPreview() {
   const prev = $("dropPreview");
+  dropUrls.forEach(u => URL.revokeObjectURL(u));
+  dropUrls = [];
   prev.innerHTML = "";
   editFiles.forEach((f, i) => {
     const url = URL.createObjectURL(f);
+    dropUrls.push(url);
     const item = document.createElement("div");
     item.className = "drop-item";
     item.innerHTML = `<img src="${url}" alt="参考图 ${i + 1}"><button type="button" class="drop-x" title="移除">✕</button>`;

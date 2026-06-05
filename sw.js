@@ -1,5 +1,5 @@
 /* AIPM Nav Service Worker —— 提供离线访问与“添加到主屏”支持 */
-const CACHE = 'aipm-nav-v2';
+const CACHE = 'aipm-nav-v3';
 const SHELL = [
   './',
   './index.html',
@@ -8,7 +8,10 @@ const SHELL = [
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  // 子应用入口，保证离线也能进入
+  './prd-agent/index.html',
+  './image-studio/index.html'
 ];
 
 self.addEventListener('install', e => {
