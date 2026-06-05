@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Studio · 图片生成工作流</title>
+  <meta name="description" content="一个可见两道工序的图片生成工作流：先用文本模型把粗略需求扩写成专业图像提示词，再交给 gpt-image-1 出图、多张抽选、参考图改图。支持零配置演示与 BYOK 真实驱动。" />
+  <meta name="theme-color" content="#f0ede8" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a1a1a'/%3E%3Ctext x='50' y='70' font-family='Georgia,serif' font-size='50' font-weight='700' fill='%23faf9f7' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Image Studio · 图片生成工作流" />
+  <meta property="og:description" content="需求→提示词→出图的可见工作流，作品集 Demo。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Jost:wght@200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <!-- ── Header ── -->
+    <header class="hd">
+      <div class="hd-left">
+        <p class="eyebrow">Image Generation · Workflow Demo</p>
+        <h1 class="title">Image&nbsp;Studio</h1>
+        <p class="subtitle">两道可见工序：<strong>需求 → 提示词</strong> 由文本模型撰写，<strong>提示词 → 出图</strong> 交给 gpt-image-1，多张抽选 · 参考图改图。</p>
+      </div>
+      <div class="hd-right">
+        <div class="hd-actions">
+          <span id="modeBadge" class="badge badge-demo" title="当前运行模式">演示模式</span>
+          <button class="icon-btn" id="settingsBtn" title="模型设置（BYOK）" aria-label="模型设置">⚙</button>
+          <button class="icon-btn" id="themeBtn" title="切换白天/黑夜主题" aria-label="切换主题">☾</button>
+        </div>
+        <a class="back-link" href="../index.html">← 返回导航页</a>
+      </div>
+    </header>
+
+    <!-- ── Phase tracker ── -->
+    <nav class="phases" id="phases" aria-label="工作流阶段">
+      <div class="phase" data-phase="1"><span class="phase-no">01</span><span class="phase-name">撰写提示词</span></div>
+      <div class="phase-arrow">→</div>
+      <div class="phase" data-phase="2"><span class="phase-no">02</span><span class="phase-name">出图</span></div>
+      <div class="phase-arrow">→</div>
+      <div class="phase" data-phase="3"><span class="phase-no">03</span><span class="phase-name">抽选 / 改图</span></div>
+    </nav>
+
+    <!-- ── Composer ── -->
+    <section class="composer" id="composer">
+      <div class="seg mode-seg" id="modeSeg" aria-label="模式">
+        <button type="button" data-mode="generate" class="seg-btn active">文生图</button>
+        <button type="button" data-mode="edit" class="seg-btn">参考图改图</button>
+      </div>
+
+      <label class="composer-label" for="reqInput">你的画面需求</label>
+      <textarea id="reqInput" class="idea-input" rows="3"
+        placeholder="用一句话描述你想要的画面，例如：一张科技感的产品落地页 Banner 主视觉……"></textarea>
+
+      <div class="chips" id="templateChips" aria-label="场景模板"></div>
+
+      <!-- 改图：参考图上传 -->
+      <div class="edit-zone" id="editZone" hidden>
+        <label class="composer-label">参考图（改图模式）</label>
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="imgFile" accept="image/*" multiple hidden />
+          <div class="drop-preview" id="dropPreview"></div>
+          <p class="drop-hint">点击或拖拽图片到此处上传（gpt-image-1 支持多张参考图）</p>
+        </div>
+      </div>
+
+      <!-- 出图参数 -->
+      <div class="controls">
+        <div class="ctrl">
+          <span class="ctrl-label">画面比例</span>
+          <div class="seg" id="aspectSeg">
+            <button type="button" data-aspect="square" class="seg-btn active">方形 1:1</button>
+            <button type="button" data-aspect="landscape" class="seg-btn">横向 3:2</button>
+            <button type="button" data-aspect="portrait" class="seg-btn">纵向 2:3</button>
+          </div>
+        </div>
+        <div class="ctrl">
+          <span class="ctrl-label">质量</span>
+          <select id="qualitySel" class="select">
+            <option value="low">低（快）</option>
+            <option value="medium">中</option>
+            <option value="high" selected>高</option>
+          </select>
+        </div>
+        <div class="ctrl">
+          <span class="ctrl-label">数量（抽选）</span>
+          <select id="countSel" class="select">
+            <option value="1">1 张</option>
+            <option value="2" selected>2 张</option>
+            <option value="3">3 张</option>
+            <option value="4">4 张</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="composer-foot">
+        <p class="hint" id="composerHint">演示模式无需 Key，出占位图即可体验完整工作流。</p>
+        <div class="run-group">
+          <button class="text-btn" id="skipBtn" type="button" title="跳过文本模型，直接拿需求当提示词出图">跳过 · 直接生图</button>
+          <button class="run-btn" id="runBtn">① 生成提示词 ▸</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Workflow trace + output ── -->
+    <section class="stage" id="stage" hidden>
+      <div class="stage-head">
+        <h2 class="stage-title">工作流运行轨迹</h2>
+        <button class="text-btn" id="resetBtn" type="button">重新开始</button>
+      </div>
+      <div class="trace" id="trace" aria-live="polite"></div>
+    </section>
+
+    <!-- ── History ── -->
+    <section class="history" id="historySec" hidden>
+      <div class="stage-head">
+        <h2 class="stage-title">历史记录 · 本地</h2>
+        <button class="text-btn" id="clearHistory" type="button">清空历史</button>
+      </div>
+      <div class="hist-grid" id="historyGrid"></div>
+    </section>
+  </main>
+
+  <!-- ── Settings modal ── -->
+  <div class="modal-mask" id="settingsModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal-head">
+        <h3 id="settingsTitle">模型设置 · BYOK</h3>
+        <button class="icon-btn" id="settingsClose" aria-label="关闭">✕</button>
+      </div>
+      <p class="modal-note">
+        填入你自己的 OpenAI Key 即可<strong>真实出图</strong>：文本模型负责写提示词，图像模型负责出图。
+        Key 仅保存在本浏览器 <code>localStorage</code>，不会上传到任何服务器。留空则用零配置<strong>演示模式</strong>。
+      </p>
+
+      <div class="field">
+        <label>预设端点</label>
+        <div class="seg" id="presetSeg">
+          <button type="button" data-preset="demo" class="seg-btn active">演示模式</button>
+          <button type="button" data-preset="openai" class="seg-btn">OpenAI</button>
+          <button type="button" data-preset="custom" class="seg-btn">自定义</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="baseUrl">Base URL</label>
+        <input id="baseUrl" type="text" placeholder="https://api.openai.com/v1" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="apiKey">API Key</label>
+        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="modelName">图像模型（出图）</label>
+        <input id="modelName" type="text" placeholder="gpt-image-1" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="textModelName">文本模型（写提示词）</label>
+        <input id="textModelName" type="text" placeholder="gpt-4o-mini" autocomplete="off" />
+      </div>
+
+      <div class="modal-foot">
+        <button class="text-btn" id="clearKeyBtn" type="button">清除并回到演示模式</button>
+        <button class="run-btn" id="saveSettings" type="button">保存设置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Lightbox ── -->
+  <div class="modal-mask lightbox" id="lightbox" hidden>
+    <button class="icon-btn lightbox-close" id="lightboxClose" aria-label="关闭">✕</button>
+    <img id="lightboxImg" alt="放大查看" />
+  </div>
+
+  <footer class="page-foot">
+    <span>Image Studio · 一个 AIPM 作品集 Demo</span>
+    <span class="dot">·</span>
+    <span>需求→提示词→出图 · 零配置可跑 · BYOK 真实驱动</span>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
