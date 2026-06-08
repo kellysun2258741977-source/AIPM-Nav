@@ -7,6 +7,17 @@
 
 import { PROMPT_WRITER_SYSTEM, EDIT_WRITER_SYSTEM } from "./prompts.js";
 
+// 把 HTTP 状态码翻译成对用户友好的文案，便于快速定位 BYOK 配置问题。
+function friendlyError(kind, status, detail) {
+  const tail = detail ? `（${detail}）` : "";
+  if (status === 401) return `Key 无效或已过期：请到「设置」检查 API Key${tail}`;
+  if (status === 403) return `该 Key 没有此模型的访问权限：gpt-image-1 需 OpenAI 组织验证；其它端点请确认账号权限${tail}`;
+  if (status === 404) return `${kind}接口不存在：模型名或 Base URL 路径可能写错${tail}`;
+  if (status === 429) return `${kind}请求被限流或额度已用完：稍后再试或检查账号余额${tail}`;
+  if (status >= 500)  return `${kind}服务暂时故障（${status}）：稍后重试${tail}`;
+  return `${kind}返回 ${status}${detail ? "：" + detail : ""}`;
+}
+
 /* 把「画面比例」映射到具体模型支持的尺寸 */
 export function sizeFor(model, aspect) {
   const isDalle = /dall-?e/i.test(model || "");
@@ -48,12 +59,12 @@ export function makeOpenAIProvider(cfg) {
         })
       });
     } catch (e) {
-      throw new Error(`文本模型请求失败：${e.message}（检查 Base URL / 网络 / CORS）`);
+      throw new Error(`无法连接到文本模型接口：${e.message}。常见原因：Base URL 拼写错误、断网，或该端点不允许浏览器跨域（CORS）。`);
     }
     if (!res.ok || !res.body) {
       let detail = "";
       try { detail = (await res.json())?.error?.message || ""; } catch { /* ignore */ }
-      throw new Error(`文本模型返回 ${res.status}${detail ? "：" + detail : ""}`);
+      throw new Error(friendlyError("文本模型", res.status, detail));
     }
 
     const reader = res.body.getReader();
@@ -90,7 +101,7 @@ export function makeOpenAIProvider(cfg) {
     if (!res.ok) {
       let detail = "";
       try { detail = (await res.json())?.error?.message || ""; } catch { /* ignore */ }
-      throw new Error(`图像接口返回 ${res.status}${detail ? "：" + detail : ""}`);
+      throw new Error(friendlyError("图像接口", res.status, detail));
     }
     const json = await res.json();
     const data = json.data || [];
@@ -136,7 +147,7 @@ export function makeOpenAIProvider(cfg) {
           body: JSON.stringify(body)
         });
       } catch (e) {
-        throw new Error(`图像请求失败：${e.message}（检查 Base URL / 网络 / CORS）`);
+        throw new Error(`无法连接到图像接口：${e.message}。常见原因：Base URL 拼写错误、断网，或该端点不允许浏览器跨域（CORS）。`);
       }
       return readImages(res);
     },
@@ -156,7 +167,7 @@ export function makeOpenAIProvider(cfg) {
       try {
         res = await fetch(`${baseURL}/images/edits`, { method: "POST", headers, body: form });
       } catch (e) {
-        throw new Error(`图像编辑请求失败：${e.message}（检查 Base URL / 网络 / CORS）`);
+        throw new Error(`无法连接到图像编辑接口：${e.message}。常见原因：Base URL 拼写错误、断网，或该端点不允许浏览器跨域（CORS）。`);
       }
       return readImages(res);
     }

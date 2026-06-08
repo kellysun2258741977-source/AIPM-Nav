@@ -207,12 +207,33 @@ function renderHistory() {
     const card = document.createElement("div");
     card.className = "hist-card";
     card.title = item.prompt || item.requirement || "";
-    card.innerHTML = `
-      ${item.thumb ? `<img src="${item.thumb}" alt="历史缩略图">` : `<div class="hist-noimg">无预览</div>`}
-      <div class="hist-meta">
-        <span class="hist-tag">${item.mode === "edit" ? "改图" : "文生图"} · ${item.count} 张</span>
-        <span class="hist-req">${(item.requirement || item.prompt || "").slice(0, 40)}</span>
-      </div>`;
+
+    // 缩略图：用 DOM API 设置 src，避免任何 innerHTML 拼接
+    if (item.thumb) {
+      const img = document.createElement("img");
+      img.src = item.thumb;
+      img.alt = "历史缩略图";
+      card.appendChild(img);
+    } else {
+      const ph = document.createElement("div");
+      ph.className = "hist-noimg";
+      ph.textContent = "无预览";
+      card.appendChild(ph);
+    }
+
+    // 元信息：全部用 textContent，不再走 innerHTML，杜绝 XSS
+    const meta = document.createElement("div");
+    meta.className = "hist-meta";
+    const tag = document.createElement("span");
+    tag.className = "hist-tag";
+    tag.textContent = `${item.mode === "edit" ? "改图" : "文生图"} · ${item.count} 张`;
+    const req = document.createElement("span");
+    req.className = "hist-req";
+    req.textContent = (item.requirement || item.prompt || "").slice(0, 40);
+    meta.appendChild(tag);
+    meta.appendChild(req);
+    card.appendChild(meta);
+
     card.addEventListener("click", () => {
       setMode(item.mode === "edit" ? "edit" : "generate");
       $("reqInput").value = item.requirement || item.prompt || "";
