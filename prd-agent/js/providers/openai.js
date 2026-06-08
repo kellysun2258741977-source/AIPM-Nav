@@ -2,6 +2,17 @@
 // 使用 SSE 流式输出（stream: true）：内容 token 通过 onToken 实时回调，
 // 同时累积分片到达的 tool_calls，最终组装成一条完整的 assistant 消息。
 
+// 按 HTTP 状态码把原始错误翻译成对用户友好的文案，帮助快速定位 BYOK 配置问题。
+function friendlyError(status, detail) {
+  const tail = detail ? `（${detail}）` : "";
+  if (status === 401) return `Key 无效或已过期：请到「设置」检查 API Key 是否正确${tail}`;
+  if (status === 403) return `该 Key 没有此模型的访问权限：请确认账号已开通对应模型/已完成组织验证${tail}`;
+  if (status === 404) return `接口不存在：模型名或 Base URL 路径可能写错（当前模型/端点是否拼写正确？）${tail}`;
+  if (status === 429) return `请求被限流或额度已用完：稍等片刻再试，或检查账号余额${tail}`;
+  if (status >= 500)  return `模型服务暂时故障（${status}）：稍后重试${tail}`;
+  return `模型接口返回 ${status}${detail ? "：" + detail : ""}`;
+}
+
 export function makeOpenAIProvider(cfg) {
   const baseURL = (cfg.baseURL || "https://api.openai.com/v1").replace(/\/$/, "");
 
@@ -26,13 +37,13 @@ export function makeOpenAIProvider(cfg) {
           })
         });
       } catch (e) {
-        throw new Error(`网络请求失败：${e.message}。请检查 Base URL、网络或 CORS 设置。`);
+        throw new Error(`无法连接到模型接口：${e.message}。常见原因：Base URL 拼写错误、断网，或该端点不允许浏览器跨域（CORS）。`);
       }
 
       if (!res.ok || !res.body) {
         let detail = "";
         try { detail = (await res.json())?.error?.message || ""; } catch { /* ignore */ }
-        throw new Error(`模型接口返回 ${res.status}${detail ? "：" + detail : ""}`);
+        throw new Error(friendlyError(res.status, detail));
       }
 
       const reader = res.body.getReader();
